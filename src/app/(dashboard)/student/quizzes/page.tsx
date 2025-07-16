@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,18 +75,6 @@ const mockTopicMastery = [
   { subject: 'History', percent: 40 },
 ];
 
-const statusLabels: Record<string, string> = {
-  not_started: 'Not Started',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-};
-
-const statusColors: Record<string, string> = {
-  not_started: 'bg-muted text-foreground',
-  in_progress: 'bg-yellow-100 text-yellow-800',
-  completed: 'bg-green-100 text-green-800',
-};
-
 function StudentQuizProgressSummary({
   quizzes,
   achievements,
@@ -94,22 +82,19 @@ function StudentQuizProgressSummary({
   quizzes: Quiz[];
   achievements: typeof mockAchievements;
 }) {
-  const inProgress = quizzes.filter((q) => q.status === 'active').length;
-  const completed = quizzes.filter((q) => q.status === 'archived').length;
-  const notStarted = quizzes.filter((q) => q.status === 'draft').length;
+  const inProgress = quizzes.filter((q) => q.isPublished).length;
+  const completed = 0; // No completed status in Quiz model
+  const notStarted = quizzes.filter((q) => !q.isPublished).length;
   // No mockAvailable logic for real quizzes
   const mockAvailable = 0;
   const lastQuiz =
-    quizzes.find((q) => q.status === 'active') ||
-    quizzes.find((q) => q.status === 'draft');
+    quizzes.find((q) => q.isPublished) || quizzes.find((q) => !q.isPublished);
   return (
     <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         {/* <h1 className="text-2xl font-bold mb-1">My Quizzes</h1> */}
         <div className="text-muted-foreground text-sm">
-          {`You have ${inProgress} in progress, ${completed} completed, ${notStarted} not started, ${mockAvailable} mock exam${
-            mockAvailable === 1 ? '' : 's'
-          } available.`}
+          {`You have ${inProgress} published, ${notStarted} unpublished quizzes available.`}
         </div>
         <div className="flex gap-2 mt-2">
           {achievements.map((a) => (
@@ -284,30 +269,30 @@ function StudentQuizCard({
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-semibold text-lg">{quiz.title}</span>
-          {/* No isMock property in real quizzes */}
           <span
             className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${
-              statusColors[quiz.status || 'not_started']
+              quiz.isPublished
+                ? 'bg-green-100 text-green-800'
+                : 'bg-yellow-100 text-yellow-800'
             }`}
           >
-            {statusLabels[quiz.status || 'not_started']}
+            {quiz.isPublished ? 'Published' : 'Draft'}
           </span>
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <span>
             <BookOpen className="inline w-3 h-3 mr-1" />
-            {quiz.subject?.name || ''}
+            {typeof quiz.subject === 'string'
+              ? quiz.subject
+              : quiz.subject?.name || 'No Subject'}
           </span>
           <span>
             <Timer className="inline w-3 h-3 mr-1" />
-            {quiz.timeLimit ?? ''} min
+            {quiz.timeLimit || 'No time limit'} min
           </span>
-          <span>By {quiz.teacher?.name || ''}</span>
+          <span>By {quiz.teacher?.name || 'Unknown Teacher'}</span>
           <span>Questions: {quiz.questions?.length ?? 0}</span>
-          {/* Difficulty property not present in Quiz type */}
         </div>
-        {/* No topics property in Quiz type */}
-        {/* No score property in Quiz type */}
       </CardContent>
     </Card>
   );
@@ -362,30 +347,21 @@ function QuizDetailsDrawer({
           </button>
           <CardTitle>{quiz.title}</CardTitle>
           <CardDescription>
-            {quiz.subject} &middot; {quiz.difficulty} &middot; {quiz.duration}{' '}
-            min
+            {typeof quiz.subject === 'string'
+              ? quiz.subject
+              : quiz.subject?.name || 'No Subject'}{' '}
+            &middot; {quiz.timeLimit || 'No time limit'} min
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-2">By {quiz.teacher}</div>
-          <div className="mb-2">{quiz.description}</div>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {quiz.topics.map((t: string) => (
-              <Badge key={t} variant="outline" className="text-xs">
-                {t}
-              </Badge>
-            ))}
+          <div className="mb-2">
+            By {quiz.teacher?.name || 'Unknown Teacher'}
           </div>
+          <div className="mb-2">{quiz.description}</div>
+          {/* Remove topics section since it doesn't exist in the Quiz model */}
           <div className="flex gap-2 mt-4">
-            {quiz.status === 'not_started' && (
-              <Button variant="default">Start Quiz</Button>
-            )}
-            {quiz.status === 'in_progress' && (
-              <Button variant="default">Resume Quiz</Button>
-            )}
-            {quiz.status === 'completed' && (
-              <Button variant="outline">Review</Button>
-            )}
+            <Button variant="default">Start Quiz</Button>
+            <Button variant="outline">Review</Button>
           </div>
         </CardContent>
       </Card>
@@ -422,11 +398,19 @@ export default function StudentQuizzesPage() {
     fetchSubjects();
   }, [user?.id]);
 
+  // Memoize the filters object to prevent infinite re-renders
+  const filters = useMemo(
+    () => ({
+      subject: subjectId,
+    }),
+    [subjectId]
+  );
+
   // Fetch quizzes for this student and subject
   const { quizzes, loading: quizzesLoading } = useQuizzes({
     userId: user?.id,
     role: 'student',
-    filters: { subject: subjectId },
+    filters,
   });
 
   if (loading || quizzesLoading || subjectsLoading)
@@ -435,16 +419,14 @@ export default function StudentQuizzesPage() {
 
   // Filter logic (search, type, etc.)
   const filtered = quizzes.filter((q) => {
+    const subjectText =
+      typeof q.subject === 'string' ? q.subject : q.subject?.name || '';
     const matchesSearch =
       q.title.toLowerCase().includes(search.toLowerCase()) ||
-      (q.subject?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      subjectText.toLowerCase().includes(search.toLowerCase()) ||
       (q.teacher?.name || '').toLowerCase().includes(search.toLowerCase());
-    // Only filter by status (active, draft, archived)
-    const matchesFilter =
-      filter === 'all' ||
-      (filter === 'assignment' && q.status === 'active') ||
-      (filter === 'practice' && q.status === 'draft') ||
-      (filter === 'completed' && q.status === 'archived');
+    // Since we don't have status field in Quiz model, we'll show all quizzes
+    const matchesFilter = filter === 'all';
     return matchesSearch && matchesFilter;
   });
 

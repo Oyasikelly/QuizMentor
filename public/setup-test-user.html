@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Setup Test User</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .success {
+        color: green;
+        font-weight: bold;
+      }
+      .error {
+        color: red;
+        font-weight: bold;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Setup Test User for QuizMentor</h1>
+      <p>
+        This page will set up a test user in localStorage so you can test the
+        student dashboard.
+      </p>
+
+      <h3>Available Test Users:</h3>
+      <button onclick="setupStudent()">Setup Test Student</button>
+      <button onclick="setupTeacher()">Setup Test Teacher</button>
+      <button onclick="clearUser()">Clear User</button>
+
+      <div id="result"></div>
+
+      <h3>Current User:</h3>
+      <pre id="currentUser">No user set</pre>
+
+      <h3>Next Steps:</h3>
+      <ol>
+        <li>Click "Setup Test Student" above</li>
+        <li>
+          Go to
+          <a href="http://localhost:3000/student/quizzes" target="_blank"
+            >http://localhost:3000/student/quizzes</a
+          >
+        </li>
+        <li>The page should now load without the spinning loader</li>
+      </ol>
+    </div>
+
+    <script>
+      function setupStudent() {
+        const testStudent = {
+          id: 'cmd6ea83a0001w0xgq1sk3t1o',
+          email: 'test.student@fupre.edu.ng',
+          name: 'Test Student',
+          role: 'STUDENT',
+          organizationId: 'fupre-org',
+          unitId: 'fupre-eng-dept',
+          isActive: true,
+        };
+
+        localStorage.setItem('user', JSON.stringify(testStudent));
+        showResult('✅ Test student setup successfully!', 'success');
+        updateCurrentUser();
+      }
+
+      function setupTeacher() {
+        const testTeacher = {
+          id: 'fupre-teacher-001',
+          email: 'dr.adebayo@fupre.edu.ng',
+          name: 'Dr. Adebayo Johnson',
+          role: 'TEACHER',
+          organizationId: 'fupre-org',
+          unitId: 'fupre-eng-dept',
+          isActive: true,
+        };
+
+        localStorage.setItem('user', JSON.stringify(testTeacher));
+        showResult('✅ Test teacher setup successfully!', 'success');
+        updateCurrentUser();
+      }
+
+      function clearUser() {
+        localStorage.removeItem('user');
+        showResult('✅ User cleared from localStorage!', 'success');
+        updateCurrentUser();
+      }
+
+      function showResult(message, type) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
+      }
+
+      function updateCurrentUser() {
+        const userDiv = document.getElementById('currentUser');
+        const user = localStorage.getItem('user');
+        if (user) {
+          userDiv.textContent = JSON.stringify(JSON.parse(user), null, 2);
+        } else {
+          userDiv.textContent = 'No user set';
+        }
+      }
+
+      // Initialize
+      updateCurrentUser();
+    </script>
+  </body>
+</html>

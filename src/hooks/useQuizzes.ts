@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Quiz, CreateQuizRequest, SubmitQuizRequest } from '@/types/quiz';
 
 interface UseQuizzesOptions {
@@ -29,6 +29,28 @@ export function useQuizzes(options: UseQuizzesOptions = {}): UseQuizzesReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize the options to prevent infinite re-renders
+  const memoizedOptions = useMemo(
+    () => ({
+      userId: options.userId,
+      role: options.role,
+      filters: options.filters
+        ? {
+            subject: options.filters.subject,
+            difficulty: options.filters.difficulty,
+            isPublished: options.filters.isPublished,
+          }
+        : undefined,
+    }),
+    [
+      options.userId,
+      options.role,
+      options.filters?.subject,
+      options.filters?.difficulty,
+      options.filters?.isPublished,
+    ]
+  );
+
   const fetchQuizzes = useCallback(async () => {
     try {
       setLoading(true);
@@ -37,10 +59,10 @@ export function useQuizzes(options: UseQuizzesOptions = {}): UseQuizzesReturn {
       // Build query params for student filtering
       let url = '/api/quizzes';
       const params = new URLSearchParams();
-      if (options.role === 'student' && options.userId) {
-        params.append('studentId', options.userId);
-        if (options.filters?.subject) {
-          params.append('subjectId', options.filters.subject);
+      if (memoizedOptions.role === 'student' && memoizedOptions.userId) {
+        params.append('studentId', memoizedOptions.userId);
+        if (memoizedOptions.filters?.subject) {
+          params.append('subjectId', memoizedOptions.filters.subject);
         }
       }
       if ([...params].length > 0) {
@@ -64,7 +86,7 @@ export function useQuizzes(options: UseQuizzesOptions = {}): UseQuizzesReturn {
     } finally {
       setLoading(false);
     }
-  }, [options.userId, options.role, options.filters]);
+  }, [memoizedOptions]);
 
   const createQuiz = useCallback(async (data: CreateQuizRequest) => {
     try {
