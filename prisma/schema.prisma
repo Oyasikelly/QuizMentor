@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id                  String               @id @default(cuid())
+  name                String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  address             String?
+  domain              String?
+  email               String?
+  isActive            Boolean              @default(true)
+  logoUrl             String?
+  phone               String?
+  slug                String               @unique
+  subscriptionPlan    String               @default("basic")
+  type                OrganizationType
+  organizationalUnits OrganizationalUnit[]
+  questions           Question[]
+  quizAnswers         QuizAnswer[]
+  quizAttempts        QuizAttempt[]
+  quizzes             Quiz[]
+  subjects            Subject[]
+  users               User[]
+
+  @@map("organizations")
+}
+
+model OrganizationalUnit {
+  id             String               @id @default(cuid())
+  organizationId String
+  name           String
+  type           UnitType
+  description    String?
+  parentId       String?
+  headId         String?
+  academicYear   String?
+  level          String?
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parent         OrganizationalUnit?  @relation("UnitHierarchy", fields: [parentId], references: [id])
+  children       OrganizationalUnit[] @relation("UnitHierarchy")
+  subjects       Subject[]
+  users          User[]
+
+  @@unique([organizationId, name, type])
+  @@map("organizational_units")
+}
+
+model User {
+  id                  String              @id @default(cuid())
+  email               String              @unique
+  name                String?
+  password            String
+  role                UserRole
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  organizationId      String
+  isActive            Boolean             @default(true)
+  unitId              String?
+  studentQuizAttempts QuizAttempt[]       @relation("StudentAttempts")
+  teacherQuizzes      Quiz[]              @relation("TeacherQuizzes")
+  student             Student?
+  teacher             Teacher?
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unit                OrganizationalUnit? @relation(fields: [unitId], references: [id])
+
+  @@map("users")
+}
+
+model Student {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  studentId     String
+  classYear     String?
+  academicLevel String?
+  phoneNumber   String?
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, studentId])
+  @@map("students")
+}
+
+model Teacher {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  employeeId     String?
+  department     String?
+  phoneNumber    String?
+  subjectsTaught String?
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, employeeId])
+  @@map("teachers")
+}
+
+model Quiz {
+  id             String        @id @default(cuid())
+  title          String
+  description    String
+  subject        String
+  timeLimit      Int?
+  totalPoints    Int           @default(0)
+  isPublished    Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  teacherId      String
+  organizationId String
+  questions      Question[]
+  attempts       QuizAttempt[]
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teacher        User          @relation("TeacherQuizzes", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@map("quizzes")
+}
+
+model Question {
+  id             String       @id @default(cuid())
+  text           String
+  type           QuestionType
+  options        String[]
+  correctAnswer  String
+  points         Int          @default(1)
+  order          Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  quizId         String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quiz           Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers        QuizAnswer[]
+
+  @@map("questions")
+}
+
+model QuizAttempt {
+  id             String       @id @default(cuid())
+  score          Int          @default(0)
+  totalPoints    Int          @default(0)
+  timeSpent      Int          @default(0)
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  quizId         String
+  studentId      String
+  organizationId String
+  answers        QuizAnswer[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quiz           Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student        User         @relation("StudentAttempts", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+model QuizAnswer {
+  id             String       @id @default(cuid())
+  answer         String
+  isCorrect      Boolean      @default(false)
+  pointsEarned   Int          @default(0)
+  attemptId      String
+  questionId     String
+  organizationId String
+  attempt        QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_answers")
+}
+
+model Subject {
+  id             String              @id @default(cuid())
+  name           String
+  organizationId String
+  unitId         String?
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unit           OrganizationalUnit? @relation(fields: [unitId], references: [id])
+
+  @@unique([organizationId, name])
+  @@map("subjects")
+}
+
+enum OrganizationType {
+  UNIVERSITY
+  SECONDARY_SCHOOL
+  PRIMARY_SCHOOL
+  STUDY_GROUP
+  TRAINING_CENTER
+  COLLEGE
+  INSTITUTE
+}
+
+enum UnitType {
+  DEPARTMENT
+  FACULTY
+  CLASS
+  GRADE
+  GROUP
+  SECTION
+  STREAM
+  YEAR
+  DIVISION
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+}
