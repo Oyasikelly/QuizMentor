@@ -31,6 +31,9 @@ export interface Quiz {
   // Populated from backend for display
   subject?: { id: string; name: string };
   teacher?: { id: string; name: string };
+  // UI filtering support
+  type?: 'assignment' | 'practice' | 'mock';
+  completed?: boolean;
 }
 
 export interface QuizAttempt {

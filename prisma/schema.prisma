@@ -74,6 +74,7 @@ model User {
   unit                OrganizationalUnit? @relation(fields: [unitId], references: [id])
   resetToken        String?  // nullable
   resetTokenExpiry  DateTime?
+  manualGrades ManualGrade[]
 
   @@map("users")
 }
@@ -173,7 +174,7 @@ model QuizAnswer {
   attempt        QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
+  manualGrade    ManualGrade?
   @@map("quiz_answers")
 }
 
@@ -188,6 +189,17 @@ model Subject {
 
   @@unique([organizationId, name])
   @@map("subjects")
+}
+
+model ManualGrade {
+  id           String   @id @default(cuid())
+  answerId     String   @unique
+  teacherId    String
+  pointsAwarded Int
+  feedback     String?
+  gradedAt     DateTime @default(now())
+  answer       QuizAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  teacher      User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
 
 enum OrganizationType {

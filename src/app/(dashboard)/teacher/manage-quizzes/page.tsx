@@ -18,6 +18,7 @@ import { FilterBar } from '@/components/teacher/manage-quizzes/filter-bar';
 import { QuizStats } from '@/components/teacher/manage-quizzes/quiz-stats';
 import { Quiz } from '@/types/quiz';
 import { useRouter } from 'next/navigation';
+import PendingGradingPanel from '@/components/teacher/manage-quizzes/PendingGradingPanel';
 
 // Mock user data for dashboard layout
 const mockUser = {
@@ -135,6 +136,10 @@ export default function ManageQuizzesPage() {
   const [sortBy, setSortBy] = useState('created');
   const [isLoading, setIsLoading] = useState(false);
 
+  // For demo, use the first active quiz and mock teacher
+  const activeQuiz = quizzes.find((q) => q.status === 'active');
+  const teacherId = mockUser.id;
+
   // Calculate stats
   const stats = {
     totalQuizzes: quizzes.length,
@@ -219,7 +224,11 @@ export default function ManageQuizzesPage() {
   ) as string[];
 
   return (
-    <DashboardLayout>
+    <DashboardLayout user={mockUser}>
+      {/* Pending Grading Panel */}
+      {activeQuiz && (
+        <PendingGradingPanel quizId={activeQuiz.id} teacherId={teacherId} />
+      )}
       <div className="space-y-6 px-2 sm:px-4 md:px-6 lg:px-8 py-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

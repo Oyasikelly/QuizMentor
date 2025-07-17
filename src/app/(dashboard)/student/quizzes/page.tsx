@@ -413,20 +413,32 @@ export default function StudentQuizzesPage() {
     filters,
   });
 
+  // After fetching quizzes, map them to add type and completed for demo/testing
+  const quizzesWithType = quizzes.map((q) => ({
+    ...q,
+    type: q.type || 'assignment', // You can randomize or derive this for demo
+    completed: q.completed ?? false, // You can randomize or derive this for demo
+  }));
+
   if (loading || quizzesLoading || subjectsLoading)
     return <FullPageSpinner text="Loading your dashboard..." />;
   if (!user) return null;
 
-  // Filter logic (search, type, etc.)
-  const filtered = quizzes.filter((q) => {
+  // Use quizzesWithType in filtering
+  const filtered = quizzesWithType.filter((q) => {
     const subjectText =
       typeof q.subject === 'string' ? q.subject : q.subject?.name || '';
     const matchesSearch =
       q.title.toLowerCase().includes(search.toLowerCase()) ||
       subjectText.toLowerCase().includes(search.toLowerCase()) ||
       (q.teacher?.name || '').toLowerCase().includes(search.toLowerCase());
-    // Since we don't have status field in Quiz model, we'll show all quizzes
-    const matchesFilter = filter === 'all';
+    // Filter by quiz type
+    let matchesFilter = false;
+    if (filter === 'all') matchesFilter = true;
+    else if (filter === 'assignment') matchesFilter = q.type === 'assignment';
+    else if (filter === 'practice') matchesFilter = q.type === 'practice';
+    else if (filter === 'mock') matchesFilter = q.type === 'mock';
+    else if (filter === 'completed') matchesFilter = q.completed === true;
     return matchesSearch && matchesFilter;
   });
 
