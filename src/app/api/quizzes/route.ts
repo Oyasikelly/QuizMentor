@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
     const subjectId = searchParams.get('subjectId');
+    const unitId = searchParams.get('unitId');
     let quizzes = [];
     if (studentId) {
       // Find the student user
@@ -19,27 +20,17 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         );
       }
-      // Build query for quizzes in student's org/unit, optionally filtered by subject
+      // Build query for quizzes in student's org/unit, optionally filtered by subject and unit
       quizzes = await prisma.quiz.findMany({
         where: {
           organizationId: studentUser.organizationId,
-          ...(studentUser.unitId
-            ? {
-                // Note: The database doesn't have unitId in quizzes table
-                // We'll filter by organization only for now
-              }
-            : {}),
-          ...(subjectId
-            ? {
-                // Since subject is a string field, we need to filter differently
-                // For now, we'll skip subject filtering until we have proper subject mapping
-              }
-            : {}),
+          ...(subjectId ? { subjectId } : {}),
+          ...(unitId ? { subject: { unitId } } : {}),
           isPublished: true,
         },
         include: {
           teacher: true,
-          // Note: subject is a string field, not a relation
+          subject: true,
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -49,6 +40,7 @@ export async function GET(request: NextRequest) {
         where: { isPublished: true },
         include: {
           teacher: true,
+          subject: true,
         },
         orderBy: { createdAt: 'desc' },
       });

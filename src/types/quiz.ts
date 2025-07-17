@@ -14,6 +14,7 @@ export interface Question {
 export interface Quiz {
   id: string;
   title: string;
+  name: string;
   description: string;
   teacherId: string;
   subjectId: string; // The id of the subject for this quiz

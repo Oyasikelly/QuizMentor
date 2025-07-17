@@ -190,7 +190,7 @@ export function TeacherDashboard({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentQuizzes.slice(0, 3).map((quiz) => (
+              {recentQuizzes.slice(0, 3).map((quiz: Quiz) => (
                 <div
                   key={quiz.id}
                   className="flex items-center justify-between"
@@ -200,7 +200,9 @@ export function TeacherDashboard({
                       {quiz.title}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {quiz.subject}
+                      {typeof quiz.subject === 'string'
+                        ? quiz.subject
+                        : quiz.subject?.name || 'No Subject'}
                     </p>
                   </div>
                   <Badge variant="outline" className="text-xs">

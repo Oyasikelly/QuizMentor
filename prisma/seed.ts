@@ -160,7 +160,6 @@ async function main() {
       create: {
         id: 'fupre-teacher-001',
         email: 'dr.adebayo@fupre.edu.ng',
-        name: 'Dr. Adebayo Johnson',
         password: 'hashedpassword123',
         role: 'TEACHER',
         organizationId: fupreOrg.id,
@@ -174,7 +173,6 @@ async function main() {
       create: {
         id: 'fupre-teacher-002',
         email: 'prof.ogunleye@fupre.edu.ng',
-        name: 'Prof. Ogunleye Sarah',
         password: 'hashedpassword123',
         role: 'TEACHER',
         organizationId: fupreOrg.id,
@@ -188,7 +186,6 @@ async function main() {
       create: {
         id: 'fupre-teacher-003',
         email: 'dr.ekong@fupre.edu.ng',
-        name: 'Dr. Ekong Michael',
         password: 'hashedpassword123',
         role: 'TEACHER',
         organizationId: fupreOrg.id,
@@ -243,7 +240,6 @@ async function main() {
       create: {
         id: 'cmd6ea83a0001w0xgq1sk3t1o',
         email: 'test.student@fupre.edu.ng',
-        name: 'Test Student',
         password: 'hashedpassword123',
         role: 'STUDENT',
         organizationId: fupreOrg.id,
@@ -257,7 +253,6 @@ async function main() {
       create: {
         id: 'fupre-student-001',
         email: 'student1@fupre.edu.ng',
-        name: 'Aisha Mohammed',
         password: 'hashedpassword123',
         role: 'STUDENT',
         organizationId: fupreOrg.id,
@@ -271,7 +266,6 @@ async function main() {
       create: {
         id: 'fupre-student-002',
         email: 'student2@fupre.edu.ng',
-        name: 'Chukwudi Okonkwo',
         password: 'hashedpassword123',
         role: 'STUDENT',
         organizationId: fupreOrg.id,
@@ -285,7 +279,6 @@ async function main() {
       create: {
         id: 'fupre-student-003',
         email: 'student3@fupre.edu.ng',
-        name: 'Fatima Hassan',
         password: 'hashedpassword123',
         role: 'STUDENT',
         organizationId: fupreOrg.id,
@@ -299,7 +292,6 @@ async function main() {
       create: {
         id: 'fupre-student-004',
         email: 'student4@fupre.edu.ng',
-        name: 'Emeka Okafor',
         password: 'hashedpassword123',
         role: 'STUDENT',
         organizationId: fupreOrg.id,
@@ -313,7 +305,6 @@ async function main() {
       create: {
         id: 'fupre-student-005',
         email: 'student5@fupre.edu.ng',
-        name: 'Zainab Abdullahi',
         password: 'hashedpassword123',
         role: 'STUDENT',
         organizationId: fupreOrg.id,
@@ -401,7 +392,15 @@ async function main() {
 
   console.log('✅ Created users (teachers and students)');
 
-  // Create quizzes
+  // Build subject name-to-id map for FUPRE
+  const fupreSubjectsByName: Record<string, string> = {};
+  for (const subj of await prisma.subject.findMany({
+    where: { organizationId: fupreOrg.id },
+  })) {
+    fupreSubjectsByName[subj.name] = subj.id;
+  }
+
+  // Create quizzes for FUPRE
   const quizzes = await Promise.all([
     prisma.quiz.upsert({
       where: { id: 'fupre-quiz-001' },
@@ -409,8 +408,8 @@ async function main() {
       create: {
         id: 'fupre-quiz-001',
         title: 'Introduction to Petroleum Engineering',
-        description: 'Basic concepts and principles of petroleum engineering',
-        subject: 'Petroleum Engineering',
+        description: 'Basic algebraic concepts and equations',
+        subjectId: fupreSubjectsByName['Petroleum Engineering'],
         timeLimit: 45,
         totalPoints: 100,
         isPublished: true,
@@ -425,7 +424,7 @@ async function main() {
         id: 'fupre-quiz-002',
         title: 'Chemical Process Design',
         description: 'Fundamentals of chemical process design and optimization',
-        subject: 'Chemical Engineering',
+        subjectId: fupreSubjectsByName['Chemical Engineering'],
         timeLimit: 60,
         totalPoints: 150,
         isPublished: true,
@@ -441,7 +440,7 @@ async function main() {
         title: 'Quantum Physics Fundamentals',
         description:
           'Introduction to quantum mechanics and wave-particle duality',
-        subject: 'Physics',
+        subjectId: fupreSubjectsByName['Physics'],
         timeLimit: 50,
         totalPoints: 120,
         isPublished: true,
@@ -456,7 +455,7 @@ async function main() {
         id: 'fupre-quiz-004',
         title: 'Advanced Calculus',
         description: 'Complex calculus problems and mathematical analysis',
-        subject: 'Mathematics',
+        subjectId: fupreSubjectsByName['Mathematics'],
         timeLimit: 75,
         totalPoints: 200,
         isPublished: true,
@@ -471,7 +470,7 @@ async function main() {
         id: 'fupre-quiz-005',
         title: 'Organic Chemistry',
         description: 'Organic chemistry principles and reactions',
-        subject: 'Chemistry',
+        subjectId: fupreSubjectsByName['Chemistry'],
         timeLimit: 40,
         totalPoints: 80,
         isPublished: true,
@@ -734,6 +733,468 @@ async function main() {
   console.log('\n👥 Sample Users:');
   console.log('- Teachers: Dr. Adebayo, Prof. Ogunleye, Dr. Ekong');
   console.log('- Students: Aisha, Chukwudi, Fatima, Emeka, Zainab');
+
+  // === DELTATECH INSTITUTE SEED DATA ===
+  console.log('🌱 Seeding DeltaTech Institute...');
+
+  // Create DeltaTech organization
+  const dtiOrg = await prisma.organization.upsert({
+    where: { id: 'dti-org' },
+    update: {},
+    create: {
+      id: 'dti-org',
+      name: 'DeltaTech Institute',
+      slug: 'deltatech',
+      type: 'INSTITUTE',
+      domain: 'deltatech.edu.ng',
+      email: 'info@deltatech.edu.ng',
+      address: 'Asaba, Delta State, Nigeria',
+      phone: '+234-yyy-yyyy',
+      subscriptionPlan: 'premium',
+      isActive: true,
+    },
+  });
+
+  // Create organizational units
+  const dtiEngDept = await prisma.organizationalUnit.upsert({
+    where: { id: 'dti-eng-dept' },
+    update: {},
+    create: {
+      id: 'dti-eng-dept',
+      organizationId: dtiOrg.id,
+      name: 'School of Engineering',
+      type: 'FACULTY',
+      description: 'Engineering Faculty',
+      isActive: true,
+    },
+  });
+  const dtiCompDept = await prisma.organizationalUnit.upsert({
+    where: { id: 'dti-comp-dept' },
+    update: {},
+    create: {
+      id: 'dti-comp-dept',
+      organizationId: dtiOrg.id,
+      name: 'Department of Computer Science',
+      type: 'DEPARTMENT',
+      description: 'Computer Science Department',
+      parentId: dtiEngDept.id,
+      isActive: true,
+    },
+  });
+  const dtiBizDept = await prisma.organizationalUnit.upsert({
+    where: { id: 'dti-biz-dept' },
+    update: {},
+    create: {
+      id: 'dti-biz-dept',
+      organizationId: dtiOrg.id,
+      name: 'School of Business',
+      type: 'FACULTY',
+      description: 'Business Faculty',
+      isActive: true,
+    },
+  });
+  const dtiAcctDept = await prisma.organizationalUnit.upsert({
+    where: { id: 'dti-acct-dept' },
+    update: {},
+    create: {
+      id: 'dti-acct-dept',
+      organizationId: dtiOrg.id,
+      name: 'Department of Accounting',
+      type: 'DEPARTMENT',
+      description: 'Accounting Department',
+      parentId: dtiBizDept.id,
+      isActive: true,
+    },
+  });
+
+  // Create subjects
+  const dtiSubjects = await Promise.all([
+    prisma.subject.upsert({
+      where: { id: 'dti-subj-001' },
+      update: {},
+      create: {
+        id: 'dti-subj-001',
+        name: 'Computer Science',
+        organizationId: dtiOrg.id,
+        unitId: dtiCompDept.id,
+      },
+    }),
+    prisma.subject.upsert({
+      where: { id: 'dti-subj-002' },
+      update: {},
+      create: {
+        id: 'dti-subj-002',
+        name: 'Software Engineering',
+        organizationId: dtiOrg.id,
+        unitId: dtiCompDept.id,
+      },
+    }),
+    prisma.subject.upsert({
+      where: { id: 'dti-subj-003' },
+      update: {},
+      create: {
+        id: 'dti-subj-003',
+        name: 'Accounting',
+        organizationId: dtiOrg.id,
+        unitId: dtiAcctDept.id,
+      },
+    }),
+    prisma.subject.upsert({
+      where: { id: 'dti-subj-004' },
+      update: {},
+      create: {
+        id: 'dti-subj-004',
+        name: 'Business Administration',
+        organizationId: dtiOrg.id,
+        unitId: dtiBizDept.id,
+      },
+    }),
+  ]);
+
+  // Create teachers
+  const dtiTeachers = await Promise.all([
+    prisma.user.upsert({
+      where: { id: 'dti-teacher-001' },
+      update: {},
+      create: {
+        id: 'dti-teacher-001',
+        email: 'mrs.ogbe@deltatech.edu.ng',
+        password: 'hashedpassword123',
+        role: 'TEACHER',
+        organizationId: dtiOrg.id,
+        unitId: dtiCompDept.id,
+        isActive: true,
+      },
+    }),
+    prisma.user.upsert({
+      where: { id: 'dti-teacher-002' },
+      update: {},
+      create: {
+        id: 'dti-teacher-002',
+        email: 'mr.adebisi@deltatech.edu.ng',
+        password: 'hashedpassword123',
+        role: 'TEACHER',
+        organizationId: dtiOrg.id,
+        unitId: dtiAcctDept.id,
+        isActive: true,
+      },
+    }),
+  ]);
+
+  // Create teacher profiles
+  await Promise.all([
+    prisma.teacher.upsert({
+      where: { id: 'dti-teacher-profile-001' },
+      update: {},
+      create: {
+        id: 'dti-teacher-profile-001',
+        userId: dtiTeachers[0].id,
+        employeeId: 'DTI-EMP-001',
+        department: 'Computer Science',
+        phoneNumber: '+234-811-111-1111',
+      },
+    }),
+    prisma.teacher.upsert({
+      where: { id: 'dti-teacher-profile-002' },
+      update: {},
+      create: {
+        id: 'dti-teacher-profile-002',
+        userId: dtiTeachers[1].id,
+        employeeId: 'DTI-EMP-002',
+        department: 'Accounting',
+        phoneNumber: '+234-822-222-2222',
+      },
+    }),
+  ]);
+
+  // Create students
+  const dtiStudents = await Promise.all([
+    prisma.user.upsert({
+      where: { id: 'dti-student-001' },
+      update: {},
+      create: {
+        id: 'dti-student-001',
+        email: 'student1@deltatech.edu.ng',
+        password: 'hashedpassword123',
+        role: 'STUDENT',
+        organizationId: dtiOrg.id,
+        unitId: dtiCompDept.id,
+        isActive: true,
+      },
+    }),
+    prisma.user.upsert({
+      where: { id: 'dti-student-002' },
+      update: {},
+      create: {
+        id: 'dti-student-002',
+        email: 'student2@deltatech.edu.ng',
+        password: 'hashedpassword123',
+        role: 'STUDENT',
+        organizationId: dtiOrg.id,
+        unitId: dtiAcctDept.id,
+        isActive: true,
+      },
+    }),
+    prisma.user.upsert({
+      where: { id: 'dti-student-003' },
+      update: {},
+      create: {
+        id: 'dti-student-003',
+        email: 'student3@deltatech.edu.ng',
+        password: 'hashedpassword123',
+        role: 'STUDENT',
+        organizationId: dtiOrg.id,
+        unitId: dtiBizDept.id,
+        isActive: true,
+      },
+    }),
+  ]);
+
+  // Create student profiles
+  await Promise.all([
+    prisma.student.upsert({
+      where: { id: 'dti-student-profile-001' },
+      update: {},
+      create: {
+        id: 'dti-student-profile-001',
+        userId: dtiStudents[0].id,
+        studentId: 'DTI-2024-001',
+        classYear: '2024',
+        academicLevel: 'ND',
+        phoneNumber: '+234-833-333-3333',
+      },
+    }),
+    prisma.student.upsert({
+      where: { id: 'dti-student-profile-002' },
+      update: {},
+      create: {
+        id: 'dti-student-profile-002',
+        userId: dtiStudents[1].id,
+        studentId: 'DTI-2024-002',
+        classYear: '2024',
+        academicLevel: 'ND',
+        phoneNumber: '+234-844-444-4444',
+      },
+    }),
+    prisma.student.upsert({
+      where: { id: 'dti-student-profile-003' },
+      update: {},
+      create: {
+        id: 'dti-student-profile-003',
+        userId: dtiStudents[2].id,
+        studentId: 'DTI-2024-003',
+        classYear: '2024',
+        academicLevel: 'ND',
+        phoneNumber: '+234-855-555-5555',
+      },
+    }),
+  ]);
+
+  // Build subject name-to-id map for DeltaTech
+  const dtiSubjectsByName: Record<string, string> = {};
+  for (const subj of await prisma.subject.findMany({
+    where: { organizationId: dtiOrg.id },
+  })) {
+    dtiSubjectsByName[subj.name] = subj.id;
+  }
+
+  // Create quizzes for DeltaTech
+  const dtiQuizzes = await Promise.all([
+    prisma.quiz.upsert({
+      where: { id: 'dti-quiz-001' },
+      update: {},
+      create: {
+        id: 'dti-quiz-001',
+        title: 'Intro to Programming',
+        description: 'Basics of programming in Python',
+        subjectId: dtiSubjectsByName['Computer Science'],
+        timeLimit: 30,
+        totalPoints: 50,
+        isPublished: true,
+        teacherId: dtiTeachers[0].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.quiz.upsert({
+      where: { id: 'dti-quiz-002' },
+      update: {},
+      create: {
+        id: 'dti-quiz-002',
+        title: 'Principles of Accounting',
+        description: 'Fundamentals of accounting principles',
+        subjectId: dtiSubjectsByName['Accounting'],
+        timeLimit: 40,
+        totalPoints: 60,
+        isPublished: true,
+        teacherId: dtiTeachers[1].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+  ]);
+
+  // Create questions for each quiz
+  await Promise.all([
+    prisma.question.upsert({
+      where: { id: 'dti-q-001' },
+      update: {},
+      create: {
+        id: 'dti-q-001',
+        text: 'What is a variable in programming?',
+        type: 'MULTIPLE_CHOICE',
+        options: ['A value', 'A container for data', 'A function', 'A loop'],
+        correctAnswer: 'A container for data',
+        points: 10,
+        order: 1,
+        quizId: dtiQuizzes[0].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.question.upsert({
+      where: { id: 'dti-q-002' },
+      update: {},
+      create: {
+        id: 'dti-q-002',
+        text: 'Which language is used for web development?',
+        type: 'MULTIPLE_CHOICE',
+        options: ['Python', 'HTML', 'C++', 'Java'],
+        correctAnswer: 'HTML',
+        points: 10,
+        order: 2,
+        quizId: dtiQuizzes[0].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.question.upsert({
+      where: { id: 'dti-q-003' },
+      update: {},
+      create: {
+        id: 'dti-q-003',
+        text: 'What is the accounting equation?',
+        type: 'MULTIPLE_CHOICE',
+        options: [
+          'Assets = Liabilities + Equity',
+          'Assets = Revenue - Expenses',
+          'Liabilities = Assets + Equity',
+          'Equity = Assets - Liabilities',
+        ],
+        correctAnswer: 'Assets = Liabilities + Equity',
+        points: 15,
+        order: 1,
+        quizId: dtiQuizzes[1].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.question.upsert({
+      where: { id: 'dti-q-004' },
+      update: {},
+      create: {
+        id: 'dti-q-004',
+        text: 'Which of these is a financial statement?',
+        type: 'MULTIPLE_CHOICE',
+        options: [
+          'Balance Sheet',
+          'Income Statement',
+          'Cash Flow Statement',
+          'All of the above',
+        ],
+        correctAnswer: 'All of the above',
+        points: 15,
+        order: 2,
+        quizId: dtiQuizzes[1].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+  ]);
+
+  // Create quiz attempts
+  const dtiAttempts = await Promise.all([
+    prisma.quizAttempt.upsert({
+      where: { id: 'dti-attempt-001' },
+      update: {},
+      create: {
+        id: 'dti-attempt-001',
+        score: 40,
+        totalPoints: 50,
+        timeSpent: 1200,
+        completedAt: new Date(),
+        quizId: dtiQuizzes[0].id,
+        studentId: dtiStudents[0].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.quizAttempt.upsert({
+      where: { id: 'dti-attempt-002' },
+      update: {},
+      create: {
+        id: 'dti-attempt-002',
+        score: 55,
+        totalPoints: 60,
+        timeSpent: 1500,
+        completedAt: new Date(),
+        quizId: dtiQuizzes[1].id,
+        studentId: dtiStudents[1].id,
+        organizationId: dtiOrg.id,
+      },
+    }),
+  ]);
+
+  // Create quiz answers
+  await Promise.all([
+    prisma.quizAnswer.upsert({
+      where: { id: 'dti-answer-001' },
+      update: {},
+      create: {
+        id: 'dti-answer-001',
+        answer: 'A container for data',
+        isCorrect: true,
+        pointsEarned: 10,
+        attemptId: dtiAttempts[0].id,
+        questionId: 'dti-q-001',
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.quizAnswer.upsert({
+      where: { id: 'dti-answer-002' },
+      update: {},
+      create: {
+        id: 'dti-answer-002',
+        answer: 'HTML',
+        isCorrect: true,
+        pointsEarned: 10,
+        attemptId: dtiAttempts[0].id,
+        questionId: 'dti-q-002',
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.quizAnswer.upsert({
+      where: { id: 'dti-answer-003' },
+      update: {},
+      create: {
+        id: 'dti-answer-003',
+        answer: 'Assets = Liabilities + Equity',
+        isCorrect: true,
+        pointsEarned: 15,
+        attemptId: dtiAttempts[1].id,
+        questionId: 'dti-q-003',
+        organizationId: dtiOrg.id,
+      },
+    }),
+    prisma.quizAnswer.upsert({
+      where: { id: 'dti-answer-004' },
+      update: {},
+      create: {
+        id: 'dti-answer-004',
+        answer: 'All of the above',
+        isCorrect: true,
+        pointsEarned: 15,
+        attemptId: dtiAttempts[1].id,
+        questionId: 'dti-q-004',
+        organizationId: dtiOrg.id,
+      },
+    }),
+  ]);
+
+  console.log('✅ DeltaTech Institute seeded!');
 }
 
 main()

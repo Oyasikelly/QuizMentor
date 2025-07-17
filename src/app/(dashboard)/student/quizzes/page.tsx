@@ -263,7 +263,7 @@ function StudentQuizCard({
 }) {
   return (
     <Card
-      className="shadow-sm hover:shadow-md transition cursor-pointer bg-blue-50 dark:bg-blue-900/10"
+      className="shadow-sm hover:shadow-md transition cursor-pointer"
       onClick={() => onDetails(quiz)}
     >
       <CardContent className="p-4">
@@ -446,7 +446,7 @@ export default function StudentQuizzesPage() {
     <DashboardLayout pageTitle="My Quizzes">
       <div className="space-y-6 mx-auto">
         {/* Subject filter dropdown if multiple subjects */}
-        {subjects.length > 1 && (
+        {subjects.length > 0 && (
           <div className="mb-4">
             <label
               htmlFor="subject-filter"

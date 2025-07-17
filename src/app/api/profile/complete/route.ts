@@ -23,11 +23,14 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    // Update the user's unitId if provided
-    if (unitId) {
+    // Update the user's unitId and organizationId if provided
+    const updateData: any = {};
+    if (unitId) updateData.unitId = unitId;
+    if (body.organizationId) updateData.organizationId = body.organizationId;
+    if (Object.keys(updateData).length > 0) {
       await prisma.user.update({
         where: { id: userId },
-        data: { unitId },
+        data: updateData,
       });
     }
     if (role === 'student') {

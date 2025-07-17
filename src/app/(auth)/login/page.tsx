@@ -417,12 +417,12 @@ export default function LoginPage() {
                   >
                     Don't have an account? Sign up
                   </Link>
-                  <div className="text-sm">
+                  <div className="mt-4 text-center">
                     <Link
-                      href="/forgot-password"
-                      className="text-muted-foreground hover:underline"
+                      href="/request-reset"
+                      className="text-sm text-primary hover:underline"
                     >
-                      Forgot your password?
+                      Forgot password?
                     </Link>
                   </div>
                 </div>

@@ -56,10 +56,10 @@ model OrganizationalUnit {
 }
 
 model User {
-  id                  String              @id @default(cuid())
-  email               String              @unique
-  name                String?
-  password            String
+  id                String   @id @default(uuid())
+  email             String   @unique
+  password          String
+  name              String?  // optional name field
   role                UserRole
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
@@ -72,6 +72,8 @@ model User {
   teacher             Teacher?
   organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   unit                OrganizationalUnit? @relation(fields: [unitId], references: [id])
+  resetToken        String?  // nullable
+  resetTokenExpiry  DateTime?
 
   @@map("users")
 }
@@ -106,18 +108,19 @@ model Quiz {
   id             String        @id @default(cuid())
   title          String
   description    String
-  subject        String
+  subjectId      String
+  subject        Subject       @relation(fields: [subjectId], references: [id])
   timeLimit      Int?
   totalPoints    Int           @default(0)
   isPublished    Boolean       @default(false)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   teacherId      String
-  organizationId String
+  teacher        User          @relation("TeacherQuizzes", fields: [teacherId], references: [id], onDelete: Cascade)
   questions      Question[]
   attempts       QuizAttempt[]
+  organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  teacher        User          @relation("TeacherQuizzes", fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@map("quizzes")
 }
@@ -181,6 +184,7 @@ model Subject {
   unitId         String?
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   unit           OrganizationalUnit? @relation(fields: [unitId], references: [id])
+  quizzes        Quiz[]
 
   @@unique([organizationId, name])
   @@map("subjects")

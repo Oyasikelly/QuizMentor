@@ -19,11 +19,10 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         );
       }
-      // Fetch subjects for the student's organization and unit (if unitId is set)
+      // Fetch all subjects for the student's organization (ignore unitId)
       subjects = await prisma.subject.findMany({
         where: {
           organizationId: studentUser.organizationId,
-          ...(studentUser.unitId ? { unitId: studentUser.unitId } : {}),
         },
       });
     } else if (teacherId) {
