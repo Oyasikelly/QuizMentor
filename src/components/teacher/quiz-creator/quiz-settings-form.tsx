@@ -297,7 +297,7 @@ export default function QuizSettingsForm({
           <div className="flex items-center space-x-4">
             <Switch
               id="timeLimit"
-              checked={settings.timeLimit !== null && settings.timeLimit > 0}
+              checked={(settings.timeLimit ?? 0) > 0}
               onCheckedChange={(checked) =>
                 updateSettings({ timeLimit: checked ? 30 : null })
               }
@@ -311,7 +311,7 @@ export default function QuizSettingsForm({
               <Input
                 id="timeLimitValue"
                 type="number"
-                value={settings.timeLimit || ''}
+                value={settings.timeLimit ?? ''}
                 onChange={(e) =>
                   updateSettings({
                     timeLimit: parseInt(e.target.value) || null,

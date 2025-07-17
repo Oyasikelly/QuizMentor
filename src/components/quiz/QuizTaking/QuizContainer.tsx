@@ -1,14 +1,15 @@
+'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Timer } from 'lucide-react';
 // Import your question type components
-import MultipleChoice from '@/components/shared/question-types/multiple-choice';
-import TrueFalse from '@/components/shared/question-types/true-false';
-import ShortAnswer from '@/components/shared/question-types/short-answer';
-import FillInBlank from '@/components/shared/question-types/fill-in-blank';
-import Essay from '@/components/shared/question-types/essay';
+import StudentMultipleChoice from '@/components/shared/question-types/StudentMultipleChoice';
+import StudentTrueFalse from '@/components/shared/question-types/StudentTrueFalse';
+import StudentShortAnswer from '@/components/shared/question-types/StudentShortAnswer';
+import StudentFillInBlank from '@/components/shared/question-types/StudentFillInBlank';
+import StudentEssay from '@/components/shared/question-types/StudentEssay';
 
 interface Question {
   id: string;
@@ -87,42 +88,53 @@ export default function QuizContainer({
   };
 
   const renderQuestion = (q: Question, idx: number) => {
+    // Map backend question to quiz-creation type for student components
+    const mappedQ = {
+      id: q.id,
+      type: q.type as any,
+      question: q.text,
+      options: q.options || [],
+    } as any; // Only pass what is needed
     switch (q.type) {
       case 'multiple-choice':
         return (
-          <MultipleChoice
-            question={q}
-            value={answers[idx]}
-            onChange={handleAnswer}
+          <StudentMultipleChoice
+            question={mappedQ}
+            value={answers[idx] || ''}
+            onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'true-false':
         return (
-          <TrueFalse
-            question={q}
-            value={answers[idx]}
-            onChange={handleAnswer}
+          <StudentTrueFalse
+            question={mappedQ}
+            value={answers[idx] || ''}
+            onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'short-answer':
         return (
-          <ShortAnswer
-            question={q}
-            value={answers[idx]}
-            onChange={handleAnswer}
+          <StudentShortAnswer
+            question={mappedQ}
+            value={answers[idx] || ''}
+            onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'fill-in-blank':
         return (
-          <FillInBlank
-            question={q}
-            value={answers[idx]}
-            onChange={handleAnswer}
+          <StudentFillInBlank
+            question={mappedQ}
+            value={answers[idx] || ''}
+            onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'essay':
         return (
-          <Essay question={q} value={answers[idx]} onChange={handleAnswer} />
+          <StudentEssay
+            question={mappedQ}
+            value={answers[idx] || ''}
+            onChange={(val: string) => handleAnswer(val)}
+          />
         );
       default:
         return <div>Unsupported question type</div>;

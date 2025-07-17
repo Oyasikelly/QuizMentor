@@ -29,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { FullPageSpinner } from '@/components/shared/loading-spinner';
 import { useQuizzes } from '@/hooks/useQuizzes';
 import { Quiz } from '@/types/quiz';
+import { useRouter } from 'next/navigation';
 
 const mockAchievements = [
   {
@@ -329,6 +330,7 @@ function QuizDetailsDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
   if (!quiz) return null;
   return (
     <div
@@ -360,7 +362,12 @@ function QuizDetailsDrawer({
           <div className="mb-2">{quiz.description}</div>
           {/* Remove topics section since it doesn't exist in the Quiz model */}
           <div className="flex gap-2 mt-4">
-            <Button variant="default">Start Quiz</Button>
+            <Button
+              variant="default"
+              onClick={() => router.push(`/quiz/${quiz.id}`)}
+            >
+              Start Quiz
+            </Button>
             <Button variant="outline">Review</Button>
           </div>
         </CardContent>

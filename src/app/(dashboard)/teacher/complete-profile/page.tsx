@@ -220,7 +220,6 @@ export default function TeacherCompleteProfilePage() {
                   );
                   handleInputChange('subjectIds', selected);
                 }}
-                multiple
                 disabled={
                   isLoading || subjectsLoading || !formData.organizationId
                 }
