@@ -252,13 +252,13 @@ export default function ManageQuizzesPage() {
         <QuizStats stats={stats} />
 
         {/* How to Use Card */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card className="bg-blue-50 dark:bg-blue-900/10">
-            <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <CardHeader className="flex flex-row items-center gap-2 pb-2 px-4 sm:px-6 pt-4">
               <Info className="h-5 w-5 text-blue-600" />
               <CardTitle className="text-base">How to Use</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4">
               <ul className="list-disc pl-5 text-sm text-blue-900 dark:text-blue-200 space-y-1">
                 <li>Use the search and filters to quickly find quizzes.</li>
                 <li>
@@ -278,11 +278,11 @@ export default function ManageQuizzesPage() {
 
           {/* Recent Activity Card */}
           <Card className="bg-green-50 dark:bg-green-900/10">
-            <CardHeader className="flex flex-row items-center gap-2 pb-2">
+            <CardHeader className="flex flex-row items-center gap-2 pb-2 px-4 sm:px-6 pt-4">
               <Activity className="h-5 w-5 text-green-600" />
               <CardTitle className="text-base">Recent Activity</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4">
               <ul className="text-sm text-green-900 dark:text-green-200 space-y-1">
                 <li>Quiz "Advanced Calculus" was updated 2 days ago.</li>
                 <li>"Modern Physics" received 5 new attempts this week.</li>

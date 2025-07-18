@@ -1,5 +1,7 @@
 import React from 'react';
 import { Question } from '@/types/quiz-creation';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 export default function StudentEssay({
   question,
@@ -12,12 +14,18 @@ export default function StudentEssay({
 }) {
   return (
     <div>
-      <div className="mb-4 font-medium">{question.question}</div>
-      <textarea
-        className="w-full border rounded px-3 py-2 min-h-[120px]"
+      <Label
+        className="mb-4 font-medium block"
+        htmlFor={`essay-${question.id}`}
+      >
+        {question.question}
+      </Label>
+      <Textarea
+        id={`essay-${question.id}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Type your essay answer..."
+        className="w-full min-h-[120px]"
       />
     </div>
   );

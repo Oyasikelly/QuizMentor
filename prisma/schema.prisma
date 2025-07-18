@@ -93,13 +93,13 @@ model Student {
 }
 
 model Teacher {
-  id             String  @id @default(cuid())
-  userId         String  @unique
+  id             String    @id @default(cuid())
+  userId         String    @unique
   employeeId     String?
   department     String?
   phoneNumber    String?
-  subjectsTaught String?
-  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects       Subject[] @relation("TeacherSubjects")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, employeeId])
   @@map("teachers")
@@ -186,6 +186,7 @@ model Subject {
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   unit           OrganizationalUnit? @relation(fields: [unitId], references: [id])
   quizzes        Quiz[]
+  teachers       Teacher[]   @relation("TeacherSubjects")
 
   @@unique([organizationId, name])
   @@map("subjects")

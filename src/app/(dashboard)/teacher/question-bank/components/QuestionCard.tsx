@@ -27,7 +27,7 @@ export function QuestionCard({
   onAddToQuiz,
 }: QuestionCardProps) {
   return (
-    <Card className="p-4 flex flex-col gap-2">
+    <Card className="w-full max-w-md sm:max-w-lg p-4 sm:p-6 flex flex-col gap-2 mx-auto">
       <div className="flex items-center justify-between gap-2">
         <div className="font-medium truncate max-w-xs" title={question.text}>
           {question.text}

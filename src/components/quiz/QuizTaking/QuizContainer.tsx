@@ -10,6 +10,7 @@ import StudentTrueFalse from '@/components/shared/question-types/StudentTrueFals
 import StudentShortAnswer from '@/components/shared/question-types/StudentShortAnswer';
 import StudentFillInBlank from '@/components/shared/question-types/StudentFillInBlank';
 import StudentEssay from '@/components/shared/question-types/StudentEssay';
+import { useRouter } from 'next/navigation';
 
 interface Question {
   id: string;
@@ -40,6 +41,7 @@ export default function QuizContainer({
     'saved'
   );
   const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
 
   // Timer logic
   useEffect(() => {
@@ -81,10 +83,18 @@ export default function QuizContainer({
     setCurrent((c) => Math.min(c + 1, questions.length - 1));
   const handlePrev = () => setCurrent((c) => Math.max(c - 1, 0));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitting(true);
     const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-    onSubmit(answers, timeTaken);
+    try {
+      await onSubmit(answers, timeTaken);
+      // Optionally show a result modal here
+      router.push('/student/quizzes'); // or '/quizzes' or wherever
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderQuestion = (q: Question, idx: number) => {
@@ -96,7 +106,7 @@ export default function QuizContainer({
       options: q.options || [],
     } as any; // Only pass what is needed
     switch (q.type) {
-      case 'multiple-choice':
+      case 'MULTIPLE_CHOICE':
         return (
           <StudentMultipleChoice
             question={mappedQ}
@@ -142,17 +152,19 @@ export default function QuizContainer({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-2xl shadow-xl">
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <CardTitle>{quizTitle}</CardTitle>
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen flex items-center justify-center bg-background px-2 sm:px-4 py-4">
+      <Card className="w-full max-w-lg sm:max-w-xl md:max-w-2xl shadow-xl">
+        <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between px-3 sm:px-6 pt-4 pb-2">
+          <CardTitle className="text-lg sm:text-xl md:text-2xl break-words">
+            {quizTitle}
+          </CardTitle>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 md:mt-0">
             <Progress
               value={((current + 1) / questions.length) * 100}
-              className="w-32"
+              className="w-24 sm:w-32"
             />
             {timeLimit && (
-              <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                 <Timer className="w-4 h-4" />
                 {timeLeft !== null
                   ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60)
@@ -170,25 +182,32 @@ export default function QuizContainer({
             </span>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6">
+        <CardContent className="px-3 sm:px-6 pb-6">
+          <div className="mb-6 min-w-0 break-words">
             {renderQuestion(questions[current], current)}
           </div>
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex flex-row justify-between items-center mt-4 gap-3">
             <Button
               variant="outline"
               onClick={handlePrev}
               disabled={current === 0}
+              className="w-auto"
             >
               Previous
             </Button>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-0">
               Question {current + 1} of {questions.length}
             </span>
             {current < questions.length - 1 ? (
-              <Button onClick={handleNext}>Next</Button>
+              <Button onClick={handleNext} className="w-auto">
+                Next
+              </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={submitting}>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="w-auto"
+              >
                 {submitting ? 'Submitting...' : 'Submit Quiz'}
               </Button>
             )}

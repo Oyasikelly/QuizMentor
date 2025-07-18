@@ -52,39 +52,27 @@ export async function POST(request: NextRequest) {
         });
       }
     } else if (role === 'teacher') {
-      let teacher: Teacher;
-      try {
-        teacher = await prisma.teacher.update({
-          where: { userId },
-          data: { department, phoneNumber, employeeId },
-        });
-        // Remove all current subject assignments
-        await prisma.teacherSubject.deleteMany({
-          where: { teacherId: teacher.id },
-        });
-        // Add new subject assignments
-        if (subjectIds && subjectIds.length > 0) {
-          await prisma.teacherSubject.createMany({
-            data: subjectIds.map((subjectId: string) => ({
-              teacherId: teacher.id,
-              subjectId,
-            })),
-          });
-        }
-      } catch (e) {
-        // If not found, create
-        teacher = await prisma.teacher.create({
-          data: { userId, department, phoneNumber, employeeId },
-        });
-        if (subjectIds && subjectIds.length > 0) {
-          await prisma.teacherSubject.createMany({
-            data: subjectIds.map((subjectId: string) => ({
-              teacherId: teacher.id,
-              subjectId,
-            })),
-          });
-        }
-      }
+      // Use upsert to avoid unique constraint errors and set subjects relation
+      await prisma.teacher.upsert({
+        where: { userId },
+        update: {
+          department,
+          phoneNumber,
+          employeeId,
+          subjects: {
+            set: (subjectIds || []).map((id: string) => ({ id })),
+          },
+        },
+        create: {
+          userId,
+          department,
+          phoneNumber,
+          employeeId,
+          subjects: {
+            connect: (subjectIds || []).map((id: string) => ({ id })),
+          },
+        },
+      });
     } else {
       return NextResponse.json({ error: 'Invalid role.' }, { status: 400 });
     }

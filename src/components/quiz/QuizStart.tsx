@@ -23,8 +23,8 @@ export default function QuizStart({
   loading,
 }: QuizStartProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100/60 via-green-100/40 to-purple-100/30 dark:from-[#23272f] dark:via-[#2d3140] dark:to-[#23272f]">
-      <Card className="w-full max-w-lg shadow-2xl backdrop-blur-md bg-white/80 dark:bg-card/80 border-0">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <Card className="w-full max-w-lg shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl md:text-3xl font-bold text-center mb-2">
             {title}
@@ -64,7 +64,7 @@ export default function QuizStart({
             )}
           </div>
           <Button
-            className="w-full py-3 text-lg font-semibold rounded-xl shadow-md bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 transition-all duration-200"
+            className="w-full py-3 text-lg font-semibold rounded-xl shadow-md"
             onClick={onStart}
             disabled={loading}
           >

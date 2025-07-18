@@ -1,5 +1,7 @@
 import React from 'react';
 import { Question } from '@/types/quiz-creation';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function StudentFillInBlank({
   question,
@@ -13,22 +15,21 @@ export default function StudentFillInBlank({
   // Replace blank with input
   const parts = question.question.split('_____');
   return (
-    <div className="mb-4 font-medium">
+    <Label className="mb-4 font-medium block">
       {parts.map((part, idx) => (
         <span key={idx}>
           {part}
           {idx < parts.length - 1 && (
-            <input
+            <Input
               type="text"
-              className="inline-block border-b border-gray-400 mx-2 px-2 py-1"
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder="Blank"
-              style={{ minWidth: 60 }}
+              className="inline-block mx-2 min-w-[60px]"
             />
           )}
         </span>
       ))}
-    </div>
+    </Label>
   );
 }

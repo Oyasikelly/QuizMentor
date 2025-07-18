@@ -34,6 +34,7 @@ export interface Quiz {
   // UI filtering support
   type?: 'assignment' | 'practice' | 'mock';
   completed?: boolean;
+  questionsCount?: number;
 }
 
 export interface QuizAttempt {

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Question } from '@/types/quiz-creation';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function StudentShortAnswer({
   question,
@@ -12,13 +14,19 @@ export default function StudentShortAnswer({
 }) {
   return (
     <div>
-      <div className="mb-4 font-medium">{question.question}</div>
-      <input
+      <Label
+        className="mb-4 font-medium block"
+        htmlFor={`short-answer-${question.id}`}
+      >
+        {question.question}
+      </Label>
+      <Input
+        id={`short-answer-${question.id}`}
         type="text"
-        className="w-full border rounded px-3 py-2"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Type your answer..."
+        className="w-full"
       />
     </div>
   );

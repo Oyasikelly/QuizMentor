@@ -20,7 +20,7 @@ export default function TeacherCompleteProfilePage() {
   const [subjectsLoading, setSubjectsLoading] = useState(false);
   const [formData, setFormData] = useState({
     department: '',
-    subjectIds: [] as string[],
+    subjectIds: [] as string[], // allow multiple subjects
     phoneNumber: '',
     organizationId: '',
     employeeId: '',
@@ -120,7 +120,11 @@ export default function TeacherCompleteProfilePage() {
       const res = await fetch('/api/profile/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, role, userId: user.id }),
+        body: JSON.stringify({
+          ...formData,
+          role,
+          userId: user.id,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -220,6 +224,7 @@ export default function TeacherCompleteProfilePage() {
                   );
                   handleInputChange('subjectIds', selected);
                 }}
+                multiple
                 disabled={
                   isLoading || subjectsLoading || !formData.organizationId
                 }
@@ -232,8 +237,7 @@ export default function TeacherCompleteProfilePage() {
                 ))}
               </select>
               <span className="text-xs text-muted-foreground">
-                Hold Ctrl (Cmd on Windows) or Cmd (on Mac) to select multiple
-                subjects.
+                Hold Ctrl (Cmd on Mac) to select multiple subjects.
               </span>
             </div>
             <div className="space-y-2">

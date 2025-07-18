@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, BookOpen, Target } from 'lucide-react';
 import { Quiz } from '@/types/quiz';
+import { cn } from '@/lib/utils';
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -29,8 +30,10 @@ export function QuizCard({
   const isCompact = variant === 'compact';
 
   return (
-    <Card className={className}>
-      <CardHeader className={isCompact ? 'pb-2' : ''}>
+    <Card className={cn('w-full max-w-md sm:max-w-lg h-full', className)}>
+      <CardHeader
+        className={cn(isCompact ? 'pb-2' : '', 'px-4 sm:px-6 pt-4 pb-2')}
+      >
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle className="text-lg">{quiz.title}</CardTitle>
@@ -43,33 +46,42 @@ export function QuizCard({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className={isCompact ? 'pt-0' : ''}>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                <span>{quiz.subject}</span>
+      <CardContent
+        className={cn(
+          isCompact ? 'pt-0' : '',
+          'px-4 sm:px-6 pb-4 flex flex-col gap-2'
+        )}
+      >
+        <div className="space-y-3 min-w-0 break-words">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+              <div className="flex items-center gap-1 min-w-0">
+                <BookOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate">
+                  {quiz.subject && typeof quiz.subject === 'object'
+                    ? quiz.subject.name
+                    : String(quiz.subject || 'No Subject')}
+                </span>
               </div>
               {quiz.timeLimit && (
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <span>{quiz.timeLimit} min</span>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1">
-              <Target className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-1 mt-1 sm:mt-0">
+              <Target className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span>{quiz.totalPoints} pts</span>
             </div>
           </div>
 
           {!isCompact && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 gap-2">
               <div className="text-xs text-muted-foreground">
                 Created {new Date(quiz.createdAt).toLocaleDateString()}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {onView && (
                   <Button
                     variant="outline"

@@ -4,10 +4,10 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { attemptId: string } }
+  { params }: { params: Promise<{ attemptId: string }> }
 ) {
   try {
-    const { attemptId } = params;
+    const { attemptId } = await params;
     if (!attemptId) {
       return NextResponse.json(
         { error: 'Missing attemptId.' },

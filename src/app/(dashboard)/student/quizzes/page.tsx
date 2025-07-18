@@ -30,6 +30,15 @@ import { FullPageSpinner } from '@/components/shared/loading-spinner';
 import { useQuizzes } from '@/hooks/useQuizzes';
 import { Quiz } from '@/types/quiz';
 import { useRouter } from 'next/navigation';
+import { useQuizQuestions } from '@/hooks/useQuizQuestions';
+import { useQuizContext } from '@/context/QuizContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 const mockAchievements = [
   {
@@ -151,13 +160,14 @@ function RecommendedForYou({
     <div className="mb-6">
       <h2 className="text-lg font-semibold mb-2">Recommended for You</h2>
       <div className="flex flex-col md:flex-row gap-3">
+        {/* Responsive card grid */}
         {recommendations.map((r) => (
           <Card
             key={r.id}
-            className="flex-1 shadow-sm hover:shadow-md transition cursor-pointer bg-green-50 dark:bg-green-900/10"
+            className="w-full max-w-md sm:max-w-lg flex-1 shadow-sm hover:shadow-md transition cursor-pointer bg-green-50 dark:bg-green-900/10 mx-auto"
             onClick={() => onDetails(r.quizId)}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-6 flex flex-col gap-2">
               <div className="font-medium mb-1">{r.title}</div>
               <div className="text-xs text-muted-foreground mb-2">
                 {r.reason}
@@ -258,18 +268,30 @@ function QuizFiltersBar({ search, setSearch, filter, setFilter }: any) {
 function StudentQuizCard({
   quiz,
   onDetails,
+  quizAttempts,
+  setReviewQuizId,
+  setReviewOpen,
 }: {
   quiz: Quiz;
   onDetails: (quiz: Quiz) => void;
+  quizAttempts: Record<string, any>;
+  setReviewQuizId: (id: string) => void;
+  setReviewOpen: (open: boolean) => void;
 }) {
+  const attempt = quizAttempts[quiz.id];
   return (
     <Card
-      className="shadow-sm hover:shadow-md transition cursor-pointer"
+      className="w-full max-w-md sm:max-w-lg shadow-sm hover:shadow-md transition cursor-pointer mx-auto"
       onClick={() => onDetails(quiz)}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-4 sm:p-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-semibold text-lg">{quiz.title}</span>
+          {attempt && (
+            <Badge variant="default" className="ml-2">
+              Completed
+            </Badge>
+          )}
           <span
             className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${
               quiz.isPublished
@@ -292,8 +314,27 @@ function StudentQuizCard({
             {quiz.timeLimit || 'No time limit'} min
           </span>
           <span>By {quiz.teacher?.name || 'Unknown Teacher'}</span>
-          <span>Questions: {quiz.questions?.length ?? 0}</span>
+          <span>Questions: {quiz.questionsCount ?? 0}</span>
+          {attempt && (
+            <span className="font-semibold text-green-700">
+              Score: {attempt.score} / {attempt.totalPoints}
+            </span>
+          )}
         </div>
+        {attempt && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2 w-fit"
+            onClick={(e) => {
+              e.stopPropagation();
+              setReviewQuizId(quiz.id);
+              setReviewOpen(true);
+            }}
+          >
+            Review
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
@@ -302,9 +343,15 @@ function StudentQuizCard({
 function StudentQuizList({
   quizzes,
   onDetails,
+  quizAttempts,
+  setReviewQuizId,
+  setReviewOpen,
 }: {
   quizzes: Quiz[];
   onDetails: (quiz: Quiz) => void;
+  quizAttempts: Record<string, any>;
+  setReviewQuizId: (id: string) => void;
+  setReviewOpen: (open: boolean) => void;
 }) {
   if (!quizzes.length)
     return (
@@ -315,7 +362,14 @@ function StudentQuizList({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {quizzes.map((q) => (
-        <StudentQuizCard key={q.id} quiz={q} onDetails={onDetails} />
+        <StudentQuizCard
+          key={q.id}
+          quiz={q}
+          onDetails={onDetails}
+          quizAttempts={quizAttempts}
+          setReviewQuizId={setReviewQuizId}
+          setReviewOpen={setReviewOpen}
+        />
       ))}
     </div>
   );
@@ -325,13 +379,22 @@ function QuizDetailsDrawer({
   quiz,
   open,
   onClose,
+  onReview,
 }: {
   quiz: any;
   open: boolean;
   onClose: () => void;
+  onReview: () => void;
 }) {
   const router = useRouter();
+  const { setQuiz } = useQuizContext();
+  // Fetch questions for the selected quiz
+  const { questions, loading, error } = useQuizQuestions(quiz?.id || null);
   if (!quiz) return null;
+  const handleStartQuiz = () => {
+    setQuiz({ ...quiz, questions });
+    router.push(`/quiz/${quiz.id}`);
+  };
   return (
     <div
       className={`fixed inset-0 z-50 bg-black/30 flex items-center justify-center transition ${
@@ -360,19 +423,131 @@ function QuizDetailsDrawer({
             By {quiz.teacher?.name || 'Unknown Teacher'}
           </div>
           <div className="mb-2">{quiz.description}</div>
-          {/* Remove topics section since it doesn't exist in the Quiz model */}
+          {/* Questions Section */}
+          <div className="mb-4">
+            <h4 className="font-semibold mb-2">Questions</h4>
+            {loading && <div>Loading questions...</div>}
+            {error && <div className="text-red-500">{error}</div>}
+            {!loading && !error && questions.length === 0 && (
+              <div className="text-muted-foreground">
+                No questions found for this quiz.
+              </div>
+            )}
+            <ul className="list-decimal pl-5 space-y-1">
+              {questions.map((q, idx) => (
+                <li key={q.id || idx} className="text-sm">
+                  {q.text}
+                </li>
+              ))}
+            </ul>
+          </div>
           <div className="flex gap-2 mt-4">
-            <Button
-              variant="default"
-              onClick={() => router.push(`/quiz/${quiz.id}`)}
-            >
+            <Button variant="default" onClick={handleStartQuiz}>
               Start Quiz
             </Button>
-            <Button variant="outline">Review</Button>
+            <Button variant="outline" onClick={onReview}>
+              Review
+            </Button>
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ReviewModalDrawer({
+  open,
+  onClose,
+  quizId,
+  studentId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  quizId: string;
+  studentId: string;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [review, setReview] = useState<any[]>([]);
+  const [attempt, setAttempt] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/attempts?studentId=${studentId}&quizId=${quizId}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('No previous attempt found.');
+        const data = await res.json();
+        setReview(data.review);
+        setAttempt(data.attempt);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [open, quizId, studentId]);
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg w-full pb-8 p-4 sm:p-6">
+        <DialogHeader>
+          <DialogTitle>Quiz Review</DialogTitle>
+          <DialogDescription>
+            Review your answers and see the correct answers below.
+          </DialogDescription>
+        </DialogHeader>
+        {loading && <div>Loading review...</div>}
+        {error && <div className="text-red-500">{error}</div>}
+        {attempt && (
+          <div className="mb-4">
+            <div className="font-semibold mb-2">
+              Score: {attempt.score} / {attempt.totalPoints}
+            </div>
+            <div className="text-xs text-muted-foreground mb-2">
+              Completed at: {new Date(attempt.completedAt).toLocaleString()}
+            </div>
+          </div>
+        )}
+        <div className="space-y-4">
+          {review.map((r, idx) => (
+            <div
+              key={r.questionId + '-' + idx}
+              className="border rounded p-3 bg-muted/30"
+            >
+              <div className="font-medium mb-1">
+                Q{idx + 1}: {r.question}
+              </div>
+              <div className="flex flex-col gap-1 text-sm">
+                <span>
+                  Your answer:{' '}
+                  <span
+                    className={r.isCorrect ? 'text-green-600' : 'text-red-600'}
+                  >
+                    {r.userAnswer}
+                  </span>
+                </span>
+                <span>
+                  Correct answer:{' '}
+                  <span className="text-green-700 font-semibold">
+                    {r.correctAnswer}
+                  </span>
+                </span>
+                {r.options && r.options.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    Options: {r.options.join(', ')}
+                  </span>
+                )}
+                <span>Points: {r.pointsEarned}</span>
+                <span
+                  className={r.isCorrect ? 'text-green-600' : 'text-red-600'}
+                >
+                  {r.isCorrect ? 'Correct' : 'Incorrect'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -385,6 +560,24 @@ export default function StudentQuizzesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([]);
   const [subjectsLoading, setSubjectsLoading] = useState(true);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewQuizId, setReviewQuizId] = useState<string | null>(null);
+  const [quizAttempts, setQuizAttempts] = useState<Record<string, any>>({});
+
+  // Memoize the filters object to prevent infinite re-renders
+  const filters = useMemo(
+    () => ({
+      subject: subjectId,
+    }),
+    [subjectId]
+  );
+
+  // Fetch quizzes for this student and subject
+  const { quizzes, loading: quizzesLoading } = useQuizzes({
+    userId: user?.id,
+    role: 'student',
+    filters,
+  });
 
   // Fetch student's subjects for filtering
   useEffect(() => {
@@ -405,25 +598,33 @@ export default function StudentQuizzesPage() {
     fetchSubjects();
   }, [user?.id]);
 
-  // Memoize the filters object to prevent infinite re-renders
-  const filters = useMemo(
-    () => ({
-      subject: subjectId,
-    }),
-    [subjectId]
-  );
-
-  // Fetch quizzes for this student and subject
-  const { quizzes, loading: quizzesLoading } = useQuizzes({
-    userId: user?.id,
-    role: 'student',
-    filters,
-  });
+  // Fetch latest attempts for all quizzes for this student
+  useEffect(() => {
+    async function fetchAttempts() {
+      if (!user?.id || !quizzes.length) return;
+      const results: Record<string, any> = {};
+      await Promise.all(
+        quizzes.map(async (quiz) => {
+          try {
+            const res = await fetch(
+              `/api/attempts?studentId=${user.id}&quizId=${quiz.id}`
+            );
+            if (res.ok) {
+              const data = await res.json();
+              results[quiz.id] = data.attempt;
+            }
+          } catch {}
+        })
+      );
+      setQuizAttempts(results);
+    }
+    fetchAttempts();
+  }, [user?.id, quizzes]);
 
   // After fetching quizzes, map them to add type and completed for demo/testing
   const quizzesWithType = quizzes.map((q) => ({
     ...q,
-    type: q.type || 'assignment', // You can randomize or derive this for demo
+    type: q.type || 'practice', // You can randomize or derive this for demo
     completed: q.completed ?? false, // You can randomize or derive this for demo
   }));
 
@@ -497,11 +698,27 @@ export default function StudentQuizzesPage() {
           filter={filter}
           setFilter={setFilter}
         />
-        <StudentQuizList quizzes={filtered} onDetails={handleDetails} />
+        <StudentQuizList
+          quizzes={filtered}
+          onDetails={handleDetails}
+          quizAttempts={quizAttempts}
+          setReviewQuizId={setReviewQuizId}
+          setReviewOpen={setReviewOpen}
+        />
         <QuizDetailsDrawer
           quiz={detailsQuiz}
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
+          onReview={() => {
+            setReviewQuizId(detailsQuiz?.id);
+            setReviewOpen(true);
+          }}
+        />
+        <ReviewModalDrawer
+          open={reviewOpen}
+          onClose={() => setReviewOpen(false)}
+          quizId={reviewQuizId || ''}
+          studentId={user.id}
         />
       </div>
     </DashboardLayout>

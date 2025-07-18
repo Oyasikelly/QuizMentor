@@ -31,9 +31,18 @@ export async function GET(request: NextRequest) {
         include: {
           teacher: true,
           subject: true,
+          _count: {
+            select: { questions: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
       });
+      // Add questionsCount property to each quiz
+      quizzes = quizzes.map((q) => ({
+        ...q,
+        questionsCount: q._count?.questions ?? 0,
+        _count: undefined,
+      }));
     } else {
       // Fallback: return all published quizzes
       quizzes = await prisma.quiz.findMany({
@@ -41,9 +50,17 @@ export async function GET(request: NextRequest) {
         include: {
           teacher: true,
           subject: true,
+          _count: {
+            select: { questions: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
       });
+      quizzes = quizzes.map((q) => ({
+        ...q,
+        questionsCount: q._count?.questions ?? 0,
+        _count: undefined,
+      }));
     }
     return NextResponse.json({ quizzes });
   } catch (error) {

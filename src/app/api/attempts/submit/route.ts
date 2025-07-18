@@ -47,21 +47,50 @@ export async function POST(request: NextRequest) {
     }
     const questions = attempt.quiz.questions;
     // Grade attempt
-    const { score, responses } = gradeAttempt(questions, answers);
+    let score = 0;
+    let totalPoints = 0;
+    const answerRecords = [];
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const userAnswer = answers[i];
+      const isCorrect = userAnswer === q.correctAnswer;
+      const pointsEarned = isCorrect ? q.points : 0;
+      score += pointsEarned;
+      totalPoints += q.points;
+      // Upsert or create QuizAnswer
+      const answerRecord = await prisma.quizAnswer.create({
+        data: {
+          answer: userAnswer,
+          isCorrect,
+          pointsEarned,
+          attemptId: attempt.id,
+          questionId: q.id,
+          organizationId: attempt.organizationId,
+        },
+      });
+      answerRecords.push({
+        questionId: q.id,
+        question: q.text,
+        correctAnswer: q.correctAnswer,
+        userAnswer,
+        isCorrect,
+        pointsEarned,
+      });
+    }
     // Update attempt
     const updatedAttempt = await prisma.quizAttempt.update({
       where: { id: attemptId },
       data: {
-        answers,
         timeSpent,
         score,
-        status: 'submitted',
-        submittedAt: new Date(),
+        totalPoints,
+        completedAt: new Date(),
       },
     });
-    // Save responses (optional: upsert logic)
-    // ...
-    return NextResponse.json({ attempt: updatedAttempt, responses });
+    return NextResponse.json({
+      attempt: updatedAttempt,
+      answers: answerRecords,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to submit attempt.' },

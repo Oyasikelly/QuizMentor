@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -33,33 +35,76 @@ interface StudentDashboardProps {
     email: string;
     role: 'student' | 'teacher';
   };
-  stats: {
-    quizzesTaken: number;
-    averageScore: number;
-    studyStreak: number;
-    totalPoints: number;
-  };
-  recentQuizzes: Quiz[];
-  availableQuizzes: Quiz[];
-  achievements: Array<{
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    unlocked: boolean;
-  }>;
   isLoading?: boolean;
 }
 
 export function StudentDashboard({
   user,
-  stats,
-  recentQuizzes,
-  availableQuizzes,
-  achievements,
   isLoading = false,
 }: StudentDashboardProps) {
   if (user.role !== 'student') return null;
+
+  const router = useRouter();
+  const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
+  const [realStats, setRealStats] = useState({
+    totalAttempts: 0,
+    averageScore: 0,
+    studyStreak: 0,
+    totalPoints: 0,
+  });
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewQuizId, setReviewQuizId] = useState<string | null>(null);
+  const [availableQuizzes, setAvailableQuizzes] = useState<Quiz[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchRecentAttempts() {
+      // Fetch the latest 5 attempts for this student
+      const res = await fetch(`/api/attempts?studentId=${user.id}&limit=5`);
+      if (res.ok) {
+        const data = await res.json();
+        setRecentAttempts(data.attempts || []);
+      }
+    }
+    async function fetchStats() {
+      const res = await fetch(`/api/attempts/stats?studentId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRealStats(data);
+      }
+    }
+    async function fetchAvailableQuizzes() {
+      const res = await fetch(`/api/quizzes?studentId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableQuizzes(data.quizzes || []);
+      }
+    }
+    async function fetchAchievements() {
+      const res = await fetch(`/api/achievements?studentId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAchievements(data.achievements || []);
+      }
+    }
+    fetchRecentAttempts();
+    fetchStats();
+    fetchAvailableQuizzes();
+    fetchAchievements();
+    // Refetch when window regains focus
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRecentAttempts();
+        fetchStats();
+        fetchAvailableQuizzes();
+        fetchAchievements();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [user.id]);
 
   if (isLoading) {
     return (
@@ -68,6 +113,7 @@ export function StudentDashboard({
       </div>
     );
   }
+  console.log(realStats);
 
   return (
     <div className="space-y-6">
@@ -82,7 +128,7 @@ export function StudentDashboard({
           </p>
         </div>
         <Badge variant="secondary" className="text-sm w-fit">
-          {stats.studyStreak} day streak 🔥
+          {realStats.studyStreak} day streak 🔥
         </Badge>
       </div>
 
@@ -90,25 +136,25 @@ export function StudentDashboard({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Quizzes Taken"
-          value={stats.quizzesTaken}
+          value={realStats.totalAttempts}
           icon={BookOpen}
           trend={{ value: 12, isPositive: true }}
         />
         <StatsCard
           title="Average Score"
-          value={`${stats.averageScore}%`}
+          value={`${Math.round(realStats.averageScore)}%`}
           icon={Target}
           trend={{ value: 5, isPositive: true }}
         />
         <StatsCard
           title="Study Streak"
-          value={`${stats.studyStreak} days`}
+          value={`${realStats.studyStreak} days`}
           icon={TrendingUp}
           trend={{ value: 8, isPositive: true }}
         />
         <StatsCard
           title="Total Points"
-          value={stats.totalPoints}
+          value={realStats.totalPoints}
           icon={Trophy}
           trend={{ value: 15, isPositive: true }}
         />
@@ -129,11 +175,28 @@ export function StudentDashboard({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {availableQuizzes.slice(0, 3).map((quiz) => (
-                <QuizCard key={quiz.id} quiz={quiz} variant="compact" />
+              {availableQuizzes.slice(0, 3).map((quiz: Quiz) => (
+                <QuizCard
+                  key={quiz.id}
+                  quiz={{
+                    ...quiz,
+                    subject:
+                      quiz.subject && typeof quiz.subject === 'object'
+                        ? quiz.subject
+                        : {
+                            id: 'unknown',
+                            name: String(quiz.subject || 'No Subject'),
+                          },
+                  }}
+                  variant="compact"
+                />
               ))}
               {availableQuizzes.length > 3 && (
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => router.push('/student/quizzes')}
+                >
                   View All Quizzes
                 </Button>
               )}
@@ -152,24 +215,47 @@ export function StudentDashboard({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentQuizzes.slice(0, 3).map((quiz: Quiz) => (
+              {recentAttempts.length === 0 && (
+                <div className="text-muted-foreground text-center">
+                  No recent attempts yet.
+                </div>
+              )}
+              {recentAttempts.map((attempt) => (
                 <div
-                  key={quiz.id}
-                  className="flex items-center justify-between"
+                  key={attempt.id}
+                  className="flex items-center justify-between gap-2"
                 >
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {quiz.title}
+                      {attempt.quiz?.title || 'Quiz'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {typeof quiz.subject === 'string'
-                        ? quiz.subject
-                        : quiz.subject?.name || 'No Subject'}
+                      {attempt.quiz?.subject &&
+                      typeof attempt.quiz.subject === 'object'
+                        ? attempt.quiz.subject.name
+                        : String(attempt.quiz?.subject || 'No Subject')}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">85%</p>
-                    <p className="text-xs text-muted-foreground">2 days ago</p>
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <span className="font-semibold text-green-700 text-sm">
+                      Score: {attempt.score} / {attempt.totalPoints}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {attempt.completedAt
+                        ? new Date(attempt.completedAt).toLocaleDateString()
+                        : ''}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="mt-1"
+                      onClick={() => {
+                        setReviewQuizId(attempt.quizId);
+                        setReviewOpen(true);
+                      }}
+                    >
+                      Review
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -188,7 +274,7 @@ export function StudentDashboard({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {achievements.slice(0, 3).map((achievement) => (
+              {achievements.slice(0, 3).map((achievement: any) => (
                 <div
                   key={achievement.id}
                   className={`flex items-center gap-3 p-2 rounded-lg ${

@@ -85,21 +85,21 @@ export default function StudentPage({ params }: StudentPageProps) {
         {/* Performance Metrics Cards */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* TODO: Replace with real metric cards */}
-          <Card className="p-4 flex flex-col items-center">
+          <Card className="w-full max-w-xs sm:max-w-sm p-4 sm:p-6 flex flex-col items-center mx-auto">
             <div className="text-2xl font-bold">12</div>
             <div className="text-xs text-muted-foreground">Total Quizzes</div>
           </Card>
-          <Card className="p-4 flex flex-col items-center">
+          <Card className="w-full max-w-xs sm:max-w-sm p-4 sm:p-6 flex flex-col items-center mx-auto">
             <div className="text-2xl font-bold">87%</div>
             <div className="text-xs text-muted-foreground">Avg. Score</div>
           </Card>
-          <Card className="p-4 flex flex-col items-center">
+          <Card className="w-full max-w-xs sm:max-w-sm p-4 sm:p-6 flex flex-col items-center mx-auto">
             <div className="text-2xl font-bold">+8%</div>
             <div className="text-xs text-muted-foreground">
               Improvement Rate
             </div>
           </Card>
-          <Card className="p-4 flex flex-col items-center">
+          <Card className="w-full max-w-xs sm:max-w-sm p-4 sm:p-6 flex flex-col items-center mx-auto">
             <div className="text-2xl font-bold">14h</div>
             <div className="text-xs text-muted-foreground">Time Spent</div>
           </Card>
@@ -109,18 +109,24 @@ export default function StudentPage({ params }: StudentPageProps) {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 flex flex-col gap-4">
             {/* TODO: Insert PerformanceCharts, RadarChart, ProgressBar, etc. */}
-            <Card className="p-4">Performance Charts Placeholder</Card>
+            <Card className="w-full p-4 sm:p-6 mx-auto">
+              Performance Charts Placeholder
+            </Card>
           </div>
           <div>
             {/* TODO: Insert AI Insights Panel */}
-            <Card className="p-4">AI Insights Panel Placeholder</Card>
+            <Card className="w-full p-4 sm:p-6 mx-auto">
+              AI Insights Panel Placeholder
+            </Card>
           </div>
         </section>
 
         {/* Quiz History Table */}
         <section>
           {/* TODO: Insert DataTable for quiz history */}
-          <Card className="p-4">Quiz History Table Placeholder</Card>
+          <Card className="w-full p-4 sm:p-6 mx-auto">
+            Quiz History Table Placeholder
+          </Card>
         </section>
 
         {/* Detailed Analysis & Communication Tools */}
