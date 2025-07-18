@@ -42,11 +42,34 @@ export async function GET(req: NextRequest) {
       prevDate = date;
     }
 
+    // List of completed quizzes (one per quiz, latest attempt)
+    const completedQuizzesMap = new Map();
+    for (const attempt of attempts) {
+      if (attempt.completedAt && attempt.quiz) {
+        // Only keep the latest attempt per quiz
+        const prev = completedQuizzesMap.get(attempt.quiz.id);
+        if (
+          !prev ||
+          new Date(attempt.completedAt) > new Date(prev.completedAt)
+        ) {
+          completedQuizzesMap.set(attempt.quiz.id, {
+            id: attempt.quiz.id,
+            title: attempt.quiz.title,
+            score: attempt.score,
+            totalPoints: attempt.totalPoints,
+            completedAt: attempt.completedAt,
+          });
+        }
+      }
+    }
+    const completedQuizzes = Array.from(completedQuizzesMap.values());
+
     return NextResponse.json({
       totalAttempts,
       averageScore,
       totalPoints,
       studyStreak: maxStreak,
+      completedQuizzes,
     });
   } catch (error) {
     return NextResponse.json(

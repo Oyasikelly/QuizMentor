@@ -47,7 +47,7 @@ export function StudentDashboard({
   const router = useRouter();
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [realStats, setRealStats] = useState({
-    totalAttempts: 0,
+    completedQuizzesCount: 0,
     averageScore: 0,
     studyStreak: 0,
     totalPoints: 0,
@@ -70,7 +70,10 @@ export function StudentDashboard({
       const res = await fetch(`/api/attempts/stats?studentId=${user.id}`);
       if (res.ok) {
         const data = await res.json();
-        setRealStats(data);
+        setRealStats({
+          ...data,
+          completedQuizzesCount: data.completedQuizzes.length,
+        });
       }
     }
     async function fetchAvailableQuizzes() {
@@ -136,7 +139,7 @@ export function StudentDashboard({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Quizzes Taken"
-          value={realStats.totalAttempts}
+          value={realStats.completedQuizzesCount}
           icon={BookOpen}
           trend={{ value: 12, isPositive: true }}
         />

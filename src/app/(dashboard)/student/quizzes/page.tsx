@@ -488,7 +488,7 @@ function ReviewModalDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full pb-8 p-4 sm:p-6">
+      <DialogContent className="max-w-lg w-full pb-8 p-4 sm:p-6 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-700">
         <DialogHeader>
           <DialogTitle>Quiz Review</DialogTitle>
           <DialogDescription>
