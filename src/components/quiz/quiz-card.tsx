@@ -30,7 +30,7 @@ export function QuizCard({
   const isCompact = variant === 'compact';
 
   return (
-    <Card className={cn('w-full max-w-md sm:max-w-lg h-full', className)}>
+    <Card className={cn('w-full h-full', className)}>
       <CardHeader
         className={cn(isCompact ? 'pb-2' : '', 'px-4 sm:px-6 pt-4 pb-2')}
       >
@@ -69,10 +69,10 @@ export function QuizCard({
                   <span>{quiz.timeLimit} min</span>
                 </div>
               )}
-            </div>
-            <div className="flex items-center gap-1 mt-1 sm:mt-0">
-              <Target className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span>{quiz.totalPoints} pts</span>
+              <div className="flex items-center gap-1 mt-1 sm:mt-0">
+                <Target className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span>{quiz.totalPoints} pts</span>
+              </div>
             </div>
           </div>
 

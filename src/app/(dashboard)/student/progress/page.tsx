@@ -144,7 +144,7 @@ function StudentProgressOverview({
             <span className="text-lg font-bold">{stats.quizzesTaken}</span>
             <span className="text-xs text-muted-foreground">Quizzes Taken</span>
           </div>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center">  
             <TrendingUp className="w-6 h-6 mb-1 text-primary" />
             <span className="text-lg font-bold">{stats.averageScore}%</span>
             <span className="text-xs text-muted-foreground">Avg. Score</span>

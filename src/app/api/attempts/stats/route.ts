@@ -11,7 +11,14 @@ export async function GET(req: NextRequest) {
   try {
     const attempts = await prisma.quizAttempt.findMany({
       where: { studentId },
-      include: { quiz: true, answers: true },
+      include: {
+        quiz: {
+          include: {
+            subject: true,
+          },
+        },
+        answers: true,
+      },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -58,11 +65,32 @@ export async function GET(req: NextRequest) {
             score: attempt.score,
             totalPoints: attempt.totalPoints,
             completedAt: attempt.completedAt,
+            subject: attempt.quiz.subject
+              ? {
+                  id: attempt.quiz.subject.id,
+                  name: attempt.quiz.subject.name,
+                }
+              : null,
           });
         }
       }
     }
     const completedQuizzes = Array.from(completedQuizzesMap.values());
+
+    // Get unique subjects studied
+    const subjectsMap = new Map();
+    attempts
+      .filter((attempt) => attempt.quiz.subject)
+      .forEach((attempt) => {
+        const subject = attempt.quiz.subject!;
+        if (!subjectsMap.has(subject.id)) {
+          subjectsMap.set(subject.id, {
+            id: subject.id,
+            name: subject.name,
+          });
+        }
+      });
+    const subjectsStudied = Array.from(subjectsMap.values());
 
     return NextResponse.json({
       totalAttempts,
@@ -70,6 +98,7 @@ export async function GET(req: NextRequest) {
       totalPoints,
       studyStreak: maxStreak,
       completedQuizzes,
+      subjectsStudied,
     });
   } catch (error) {
     return NextResponse.json(

@@ -74,6 +74,7 @@ export function StudentDashboard({
           ...data,
           completedQuizzesCount: data.completedQuizzes.length,
         });
+        setRecentAttempts(data.completedQuizzes || []);
       }
     }
     async function fetchAvailableQuizzes() {
@@ -116,8 +117,7 @@ export function StudentDashboard({
       </div>
     );
   }
-  console.log(realStats);
-
+  console.log(recentAttempts);
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -178,7 +178,7 @@ export function StudentDashboard({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {availableQuizzes.slice(0, 3).map((quiz: Quiz) => (
+              {availableQuizzes.slice(0, 2).map((quiz: Quiz) => (
                 <QuizCard
                   key={quiz.id}
                   quiz={{
@@ -194,7 +194,7 @@ export function StudentDashboard({
                   variant="compact"
                 />
               ))}
-              {availableQuizzes.length > 3 && (
+              {availableQuizzes.length > 2 && (
                 <Button
                   variant="outline"
                   className="w-full"
@@ -223,20 +223,19 @@ export function StudentDashboard({
                   No recent attempts yet.
                 </div>
               )}
-              {recentAttempts.map((attempt) => (
+              {recentAttempts.slice(0, 2).map((attempt) => (
                 <div
                   key={attempt.id}
                   className="flex items-center justify-between gap-2"
                 >
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {attempt.quiz?.title || 'Quiz'}
+                      {attempt.subject.name || 'Quiz'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {attempt.quiz?.subject &&
-                      typeof attempt.quiz.subject === 'object'
-                        ? attempt.quiz.subject.name
-                        : String(attempt.quiz?.subject || 'No Subject')}
+                      {attempt?.title && typeof attempt.title === 'string'
+                        ? attempt.title
+                        : String(attempt?.title || 'No Subject')}
                     </p>
                   </div>
                   <div className="text-right flex flex-col items-end gap-1">
@@ -253,12 +252,20 @@ export function StudentDashboard({
                       size="lg"
                       className="mt-1"
                       onClick={() => {
-                        setReviewQuizId(attempt.quizId);
-                        setReviewOpen(true);
+                        router.push(`/student/quizzes/`);
                       }}
                     >
-                      Review
+                      View
                     </Button>
+                    {recentAttempts.length > 2 && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => router.push('/student/quizzes')}
+                      >
+                        View All Quizzes
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
