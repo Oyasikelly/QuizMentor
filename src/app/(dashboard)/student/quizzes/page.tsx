@@ -424,7 +424,7 @@ function QuizDetailsDrawer({
           </div>
           <div className="mb-2">{quiz.description}</div>
           {/* Questions Section */}
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <h4 className="font-semibold mb-2">Questions</h4>
             {loading && <div>Loading questions...</div>}
             {error && <div className="text-red-500">{error}</div>}
@@ -440,7 +440,7 @@ function QuizDetailsDrawer({
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
           <div className="flex gap-2 mt-4">
             <Button variant="default" onClick={handleStartQuiz}>
               Start Quiz

@@ -27,6 +27,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { Quiz } from '@/types/quiz';
+import { startOfWeek, startOfMonth, isAfter } from 'date-fns';
 
 interface StudentDashboardProps {
   user: {
@@ -118,6 +119,41 @@ export function StudentDashboard({
     );
   }
   console.log(recentAttempts);
+
+  // Calculate progress overview stats
+  // Use completedQuizzes from realStats if available, else fallback to recentAttempts
+  const completedQuizzes =
+    (realStats as any).completedQuizzes || recentAttempts || [];
+
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+  const monthStart = startOfMonth(now);
+
+  // Quizzes assigned this week/month
+  const quizzesThisWeek = availableQuizzes.filter(
+    (q) => q.createdAt && new Date(q.createdAt) >= weekStart
+  );
+  const quizzesThisMonth = availableQuizzes.filter(
+    (q) => q.createdAt && new Date(q.createdAt) >= monthStart
+  );
+
+  // Completed attempts this week/month (by completedAt)
+  const attemptsThisWeek = completedQuizzes.filter(
+    (a: any) => a.completedAt && new Date(a.completedAt) >= weekStart
+  );
+  const attemptsThisMonth = completedQuizzes.filter(
+    (a: any) => a.completedAt && new Date(a.completedAt) >= monthStart
+  );
+
+  // Progress values
+  const weekCompleted = attemptsThisWeek.length;
+  const weekTotal = quizzesThisWeek.length || 1; // avoid division by zero
+  const weekProgress = (weekCompleted / weekTotal) * 100;
+
+  const monthCompleted = attemptsThisMonth.length;
+  const monthTotal = quizzesThisMonth.length || 1;
+  const monthProgress = (monthCompleted / monthTotal) * 100;
+
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -328,22 +364,22 @@ export function StudentDashboard({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <p className="text-sm font-medium">This Week</p>
-                  <Progress value={75} className="mt-2" />
+                  <Progress value={weekProgress} className="mt-2" />
                   <p className="text-xs text-muted-foreground mt-1">
-                    3 of 4 quizzes completed
+                    {weekCompleted} of {weekTotal} quizzes completed
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">This Month</p>
-                  <Progress value={60} className="mt-2" />
+                  <Progress value={monthProgress} className="mt-2" />
                   <p className="text-xs text-muted-foreground mt-1">
-                    12 of 20 quizzes completed
+                    {monthCompleted} of {monthTotal} quizzes completed
                   </p>
                 </div>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span>Goal: Complete 20 quizzes this month</span>
-                <Badge variant="outline">60%</Badge>
+                <span>Goal: Complete {monthTotal} quizzes this month</span>
+                <Badge variant="outline">{Math.round(monthProgress)}%</Badge>
               </div>
             </div>
           </CardContent>

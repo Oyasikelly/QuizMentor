@@ -1,8 +1,8 @@
 'use client';
-
+import { useAuth } from '@/hooks/useAuth';
 import * as React from 'react';
 import { Bell, Search, Menu } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import { User } from '@/types/auth';
+import { useEffect, useState } from 'react';
 
 interface HeaderProps {
   user: User;
@@ -46,8 +47,40 @@ export function Header({
   className,
   pageTitle,
 }: HeaderProps) {
+  const { logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const navItems = user.role === 'student' ? studentNavItems : teacherNavItems;
+
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<any>({});
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // Debounced search effect for students
+  useEffect(() => {
+    if (user.role !== 'student' || !search) {
+      setSearchResults({});
+      setShowDropdown(false);
+      return;
+    }
+    setSearchLoading(true);
+    const timeout = setTimeout(() => {
+      fetch(
+        `/api/search?userId=${user.id}&organizationId=${
+          user.organizationId
+        }&q=${encodeURIComponent(search)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setSearchResults(data);
+          setShowDropdown(true);
+        })
+        .catch(() => setSearchResults({}))
+        .finally(() => setSearchLoading(false));
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [search, user]);
 
   // Find the current active navigation item
   const currentNavItem = navItems.find((item) => {
@@ -56,6 +89,17 @@ export function Header({
     }
     return pathname.startsWith(item.href);
   });
+
+  const handleStudentProfile = React.useCallback(() => {
+    router.push('/student/profile');
+  }, [router]);
+  const handleStudentSettings = React.useCallback(() => {
+    router.push('/student/settings');
+  }, [router]);
+  const handleStudentLogOut = React.useCallback(() => {
+    logout();
+    router.push('/login');
+  }, [router]);
 
   const resolvedTitle = pageTitle || currentNavItem?.title || 'QuizMentor';
 
@@ -84,7 +128,163 @@ export function Header({
               <Input
                 placeholder="Search quizzes..."
                 className="pl-8 md:w-[300px] lg:w-[400px]"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onFocus={() =>
+                  searchResults.length > 0 && setShowDropdown(true)
+                }
+                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
               />
+              {/* Results dropdown for students */}
+              {user.role === 'student' && showDropdown && (
+                <div className="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-50 max-h-96 overflow-y-auto">
+                  {searchLoading ? (
+                    <div className="p-3 text-sm text-muted-foreground">
+                      Searching...
+                    </div>
+                  ) : !searchResults ||
+                    Object.values(searchResults).every(
+                      (arr: any) => !arr || arr.length === 0
+                    ) ? (
+                    <div className="p-3 text-sm text-muted-foreground">
+                      No results found.
+                    </div>
+                  ) : (
+                    <>
+                      {searchResults.nav && searchResults.nav.length > 0 && (
+                        <div>
+                          <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                            Navigation
+                          </div>
+                          {searchResults.nav.map((nav: any) => (
+                            <div
+                              key={nav.route}
+                              className="p-3 hover:bg-muted cursor-pointer text-sm"
+                              onMouseDown={() => router.push(nav.route)}
+                            >
+                              <div className="font-medium">{nav.label}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {nav.description}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {searchResults.quizzes &&
+                        searchResults.quizzes.length > 0 && (
+                          <div>
+                            <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                              Quizzes
+                            </div>
+                            {searchResults.quizzes.map((quiz: any) => (
+                              <div
+                                key={quiz.id}
+                                className="p-3 hover:bg-muted cursor-pointer text-sm"
+                                onMouseDown={() =>
+                                  router.push(`/student/quizzes/${quiz.id}`)
+                                }
+                              >
+                                <div className="font-medium">{quiz.title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {quiz.subject?.name || 'General'}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      {searchResults.attempts &&
+                        searchResults.attempts.length > 0 && (
+                          <div>
+                            <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                              Attempts
+                            </div>
+                            {searchResults.attempts.map((attempt: any) => (
+                              <div
+                                key={attempt.id}
+                                className="p-3 hover:bg-muted cursor-pointer text-sm"
+                                onMouseDown={() =>
+                                  router.push(`/student/progress`)
+                                }
+                              >
+                                <div className="font-medium">
+                                  {attempt.quiz.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  Score: {attempt.score}%
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      {searchResults.achievements &&
+                        searchResults.achievements.length > 0 && (
+                          <div>
+                            <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                              Achievements
+                            </div>
+                            {searchResults.achievements.map((a: any) => (
+                              <div
+                                key={a.id}
+                                className="p-3 text-sm"
+                                onMouseDown={() =>
+                                  router.push('/student/achievements')
+                                }
+                              >
+                                <div className="font-medium">{a.title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {a.description}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      {searchResults.badges &&
+                        searchResults.badges.length > 0 && (
+                          <div>
+                            <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                              Badges
+                            </div>
+                            {searchResults.badges.map((b: any) => (
+                              <div
+                                key={b.id}
+                                className="p-3 text-sm"
+                                onMouseDown={() =>
+                                  router.push('/student/achievements')
+                                }
+                              >
+                                <div className="font-medium">{b.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {b.description}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      {searchResults.subjects &&
+                        searchResults.subjects.length > 0 && (
+                          <div>
+                            <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                              Subjects
+                            </div>
+                            {searchResults.subjects.map((s: any) => (
+                              <div
+                                key={s.id}
+                                className="p-3 text-sm"
+                                onMouseDown={() =>
+                                  router.push(
+                                    `/student/quizzes?subjectId=${s.id}`
+                                  )
+                                }
+                              >
+                                <div className="font-medium">{s.name}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -126,10 +326,16 @@ export function Header({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleStudentProfile}>
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleStudentSettings}>
+                  Settings
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleStudentLogOut}>
+                  Log out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -85,3 +85,74 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    if (!userId) {
+      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+    }
+
+    // Fetch user, student profile, department (unit), and school (organization)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        student: true,
+        unit: true,
+        organization: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Fetch all quiz attempts for the student
+    const attempts = await prisma.quizAttempt.findMany({
+      where: { studentId: userId },
+      include: {
+        quiz: { include: { subject: true } },
+      },
+      orderBy: { completedAt: 'desc' },
+    });
+    const quizAttempts = attempts.map((a) => ({
+      quizTitle: a.quiz?.title,
+      subject: a.quiz?.subject?.name,
+      score: a.score,
+      totalPoints: a.totalPoints,
+      completedAt: a.completedAt,
+    }));
+
+    // Fetch achievements and badges
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+    const achievementsRes = await fetch(
+      `${baseUrl}/api/student/achievements?studentId=${userId}`
+    );
+    const achievementsData = await achievementsRes.json();
+
+    // Flatten the response for the form
+    return NextResponse.json({
+      name: user.name,
+      email: user.email,
+      school: user.organization?.name || '',
+      department: user.unit?.name || '',
+      year: user.student?.classYear || '',
+      regNo: user.student?.studentId || '',
+      phoneNumber: user.student?.phoneNumber || '',
+      academicLevel: user.student?.academicLevel || '',
+      notificationPrefs: (user.student as any)?.notificationPrefs || {},
+      quizAttempts,
+      achievements: achievementsData.achievements || [],
+      badges: achievementsData.badges || [],
+    });
+  } catch (error) {
+    console.error('PROFILE GET ERROR:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import {
   Card,
@@ -109,7 +109,7 @@ const mockBadges = [
     id: 'streak',
     name: 'Quiz Streak',
     description: 'Complete quizzes 5 days in a row.',
-    icon: '🔥',
+    icon: 'flame',
     category: 'consistency',
     earnedAt: new Date('2024-06-10'),
     requirements: 'Take a quiz 5 days in a row.',
@@ -119,7 +119,7 @@ const mockBadges = [
     id: 'perfect',
     name: 'Perfect Score',
     description: 'Score 100% on any quiz.',
-    icon: '🏆',
+    icon: 'award',
     category: 'performance',
     earnedAt: new Date('2024-06-05'),
     requirements: 'Score 100% on a quiz.',
@@ -129,7 +129,7 @@ const mockBadges = [
     id: 'first',
     name: 'First Quiz',
     description: 'Complete your first quiz.',
-    icon: '✅',
+    icon: 'award',
     category: 'milestone',
     earnedAt: new Date('2024-05-01'),
     requirements: 'Complete your first quiz.',
@@ -139,7 +139,7 @@ const mockBadges = [
     id: 'enthusiast',
     name: 'Quiz Enthusiast',
     description: 'Complete 10 quizzes.',
-    icon: '⭐',
+    icon: 'trending-up',
     category: 'milestone',
     earnedAt: null,
     requirements: 'Complete 10 quizzes.',
@@ -149,7 +149,7 @@ const mockBadges = [
     id: 'mockmaster',
     name: 'Mock Master',
     description: 'Complete 3 mock exams.',
-    icon: '📚',
+    icon: 'book-open',
     category: 'milestone',
     earnedAt: null,
     requirements: 'Complete 3 mock exams.',
@@ -159,7 +159,7 @@ const mockBadges = [
     id: 'longstreak',
     name: 'Streak Legend',
     description: 'Complete quizzes 10 days in a row.',
-    icon: '🔥',
+    icon: 'flame',
     category: 'consistency',
     earnedAt: null,
     requirements: 'Take a quiz 10 days in a row.',
@@ -284,7 +284,13 @@ function AchievementHeader({
   totalPoints,
   currentRank,
   totalStudents,
-}: typeof mockHeader) {
+}: {
+  studentName: string;
+  overallGrade: string;
+  totalPoints: number;
+  currentRank: number;
+  totalStudents: number;
+}) {
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -312,6 +318,7 @@ function AchievementHeader({
 }
 
 function AchievementOverviewGrid({ stats }: { stats: typeof mockStats }) {
+  console.log(stats);
   return (
     <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {stats.map((s, i) => (
@@ -331,7 +338,7 @@ function BadgeCollection({
   badges,
   onBadgeClick,
 }: {
-  badges: typeof mockBadges;
+  badges: any[];
   onBadgeClick: (badge: any) => void;
 }) {
   const rarityColors: Record<string, string> = {
@@ -340,6 +347,22 @@ function BadgeCollection({
     epic: 'border-purple-500',
     legendary: 'border-blue-500',
   };
+
+  const getBadgeIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'star':
+        return <Star className="w-8 h-8" />;
+      case 'award':
+        return <Award className="w-8 h-8" />;
+      case 'flame':
+        return <Flame className="w-8 h-8" />;
+      case 'trending-up':
+        return <TrendingUp className="w-8 h-8" />;
+      default:
+        return <CheckCircle className="w-8 h-8" />;
+    }
+  };
+
   return (
     <Card className="mb-8 bg-blue-50 dark:bg-blue-900/10">
       <CardHeader>
@@ -361,8 +384,12 @@ function BadgeCollection({
               }}
             >
               <CardContent className="flex flex-col items-center gap-2 py-4">
-                <span className="text-3xl">{badge.icon}</span>
-                <span className="font-medium text-sm">{badge.name}</span>
+                <div className="text-3xl text-yellow-500">
+                  {getBadgeIcon(badge.icon)}
+                </div>
+                <span className="font-medium text-sm text-center">
+                  {badge.name}
+                </span>
                 <Badge variant={badge.earnedAt ? 'default' : 'outline'}>
                   {badge.earnedAt ? 'Unlocked' : 'Locked'}
                 </Badge>
@@ -388,6 +415,22 @@ function BadgeDetailDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   if (!badge) return null;
+
+  const getBadgeIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'star':
+        return <Star className="w-12 h-12" />;
+      case 'award':
+        return <Award className="w-12 h-12" />;
+      case 'flame':
+        return <Flame className="w-12 h-12" />;
+      case 'trending-up':
+        return <TrendingUp className="w-12 h-12" />;
+      default:
+        return <CheckCircle className="w-12 h-12" />;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -396,7 +439,9 @@ function BadgeDetailDialog({
           <DialogD>{badge.description}</DialogD>
         </DialogH>
         <div className="flex flex-col items-center gap-2">
-          <span className="text-4xl">{badge.icon}</span>
+          <div className="text-4xl text-yellow-500">
+            {getBadgeIcon(badge.icon)}
+          </div>
           <Badge variant={badge.earnedAt ? 'default' : 'outline'}>
             {badge.earnedAt ? 'Unlocked' : 'Locked'}
           </Badge>
@@ -408,7 +453,7 @@ function BadgeDetailDialog({
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             {badge.earnedAt
-              ? `Unlocked on ${badge.earnedAt.toLocaleDateString()}`
+              ? `Unlocked on ${new Date(badge.earnedAt).toLocaleDateString()}`
               : 'Locked'}
           </div>
         </div>
@@ -652,7 +697,11 @@ function Leaderboard({ entries }: { entries: typeof mockLeaderboard }) {
   );
 }
 
-function GoalTracker({ goals }: { goals: typeof mockGoals }) {
+function GoalTracker({ goals }: { goals: any[] }) {
+  if (!goals || goals.length === 0) {
+    return null;
+  }
+
   return (
     <Card className="mb-8 bg-purple-50 dark:bg-purple-900/10">
       <CardHeader>
@@ -689,20 +738,117 @@ function GoalTracker({ goals }: { goals: typeof mockGoals }) {
 
 export default function StudentAchievementsPage() {
   const { user, loading } = useAuth();
-  if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
-  if (!user) return null;
+  const [header, setHeader] = useState<any>(null);
+  const [stats, setStats] = useState<any[] | null>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [progressData, setProgressData] = useState<any>(null);
+  const [streakData, setStreakData] = useState<any>(null);
   const [selectedBadge, setSelectedBadge] = useState<any>(null);
   const [badgeDialogOpen, setBadgeDialogOpen] = useState(false);
+  const [completedQuizzes, setCompletedQuizzes] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
   // TODO: Add celebratory animation/modal for new achievements
   // TODO: Add social sharing for achievements
-  // TODO: Connect to backend for real data
+
+  useEffect(() => {
+    if (!user) return;
+    // Fetch stats
+    fetch(`/api/attempts/stats?studentId=${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setStats([
+          {
+            title: 'Quizzes Completed',
+            value: data.totalAttempts,
+            icon: BookOpen,
+            description: 'Total quizzes finished.',
+          },
+          {
+            title: 'Average Score',
+            value: `${Math.round(data.averageScore)}%`,
+            icon: TrendingUp,
+            description: 'Across all quizzes.',
+          },
+          {
+            title: 'Perfect Scores',
+            value:
+              data.completedQuizzes?.filter((q: any) => q.score === 100)
+                .length || 0,
+            icon: Award,
+            description: '100% scores achieved.',
+          },
+          {
+            title: 'Improvement Rate',
+            value:
+              (data.improvementRate >= 0 ? '+' : '') +
+              data.improvementRate +
+              '%',
+            icon: TrendingUp,
+            description: 'Compared to first quiz.',
+          },
+          {
+            title: 'Current Streak',
+            value: data.studyStreak,
+            icon: Flame,
+            description: 'Days in a row.',
+          },
+          {
+            title: 'Badges Earned',
+            value: data.badges, // Will update after fetching badges
+            icon: Star,
+            description: 'Total badges unlocked.',
+          },
+        ]);
+        setHeader({
+          studentName: user.name || '',
+          overallGrade: 'B+', // TODO: Calculate grade
+          totalPoints: data.totalPoints || 0,
+          currentRank: data.departmentRank || 0,
+          totalStudents: data.totalStudentsInDepartment || 0,
+        });
+
+        // Update progressData and streakData with real data
+        if (data.progressData) setProgressData(data.progressData);
+        if (data.streakData) setStreakData(data.streakData);
+
+        // Update progressData with real quiz data including ranks
+        if (data.completedQuizzes) {
+          setCompletedQuizzes(data.completedQuizzes);
+        }
+        if (data.leaderboard) setLeaderboard(data.leaderboard);
+        if (data.goals) setGoals(data.goals);
+      });
+    // Fetch achievements and badges
+    fetch(`/api/student/achievements?studentId=${user.id}`)
+      .then((res) => res.json())
+      .then((achvData) => {
+        setAchievements(achvData.achievements || []);
+        setBadges(achvData.badges || []);
+        setStats((prevStats: any[] | null) =>
+          prevStats
+            ? prevStats.map((s) =>
+                s.title === 'Badges Earned'
+                  ? { ...s, value: achvData.badges?.length || 0 }
+                  : s
+              )
+            : prevStats
+        );
+      });
+  }, [user]);
+
+  if (loading || !user || !stats || !header)
+    return <FullPageSpinner text="Loading your dashboard..." />;
+
   return (
     <DashboardLayout pageTitle="Achievements">
       <div className="space-y-6 mx-auto">
-        <AchievementHeader {...mockHeader} />
-        <AchievementOverviewGrid stats={mockStats} />
+        <AchievementHeader {...header} />
+        <AchievementOverviewGrid stats={stats} />
         <BadgeCollection
-          badges={mockBadges}
+          badges={badges}
           onBadgeClick={(badge) => {
             setSelectedBadge(badge);
             setBadgeDialogOpen(true);
@@ -713,12 +859,72 @@ export default function StudentAchievementsPage() {
           open={badgeDialogOpen}
           onOpenChange={setBadgeDialogOpen}
         />
-        <ProgressCharts data={mockProgressData} />
-        <StreakTracker data={mockStreakData} />
-        <RecentAchievements achievements={mockRecentAchievements} />
-        <Leaderboard entries={mockLeaderboard} />
-        <GoalTracker goals={mockGoals} />
+        <QuizRankList completedQuizzes={completedQuizzes} />
+        {progressData ? (
+          <ProgressCharts data={progressData} />
+        ) : (
+          <div>Loading progress...</div>
+        )}
+        {streakData ? (
+          <StreakTracker data={streakData} />
+        ) : (
+          <div>Loading streak...</div>
+        )}
+        <RecentAchievements achievements={achievements} />
+        {leaderboard && leaderboard.length > 0 ? (
+          <Leaderboard entries={leaderboard} />
+        ) : (
+          <div>No leaderboard data yet.</div>
+        )}
+        {goals && goals.length > 0 ? (
+          <GoalTracker goals={goals} />
+        ) : (
+          <div>No goals data yet.</div>
+        )}
       </div>
     </DashboardLayout>
+  );
+}
+
+function QuizRankList({ completedQuizzes }: { completedQuizzes: any[] }) {
+  if (!completedQuizzes || completedQuizzes.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>Quiz Ranks</CardTitle>
+        <CardDescription>
+          Your rank for each quiz within your department.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {completedQuizzes.map((quiz) => (
+            <div
+              key={quiz.id}
+              className="flex items-center justify-between p-3 rounded-lg bg-muted"
+            >
+              <div className="flex-1">
+                <p className="font-semibold">{quiz.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  Score: <span className="font-bold">{quiz.score}%</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-lg">
+                  #{quiz.rank}{' '}
+                  <span className="text-sm text-muted-foreground">
+                    / {quiz.totalTakers}
+                  </span>
+                </p>
+                <p className="text-xs text-muted-foreground">Your Rank</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
