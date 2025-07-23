@@ -35,7 +35,7 @@ export default function StudentPage({ params }: StudentPageProps) {
   const student = mockStudent; // Replace with real fetch
 
   return (
-    <DashboardLayout user={mockUser} pageTitle={student.name}>
+    <DashboardLayout pageTitle={student.name}>
       <div className="flex flex-col gap-8">
         {/* Student Profile Header */}
         <section className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 bg-card rounded-xl p-6 shadow">

@@ -19,6 +19,7 @@ import { QuizStats } from '@/components/teacher/manage-quizzes/quiz-stats';
 import { Quiz } from '@/types/quiz';
 import { useRouter } from 'next/navigation';
 import PendingGradingPanel from '@/components/teacher/manage-quizzes/PendingGradingPanel';
+import { useAuth } from '@/hooks/useAuth';
 
 // Mock user data for dashboard layout
 const mockUser = {
@@ -37,6 +38,7 @@ const subjectObj = (id: string, name: string) => ({ id, name });
 const mockQuizzes: Quiz[] = [
   {
     id: '1',
+    name: '',
     title: 'Advanced Calculus',
     description: 'Complex mathematical concepts and applications',
     teacherId: 'teacher1',
@@ -54,6 +56,7 @@ const mockQuizzes: Quiz[] = [
   },
   {
     id: '2',
+    name: '',
     title: 'Modern Physics',
     description: 'Quantum mechanics and relativity',
     teacherId: 'teacher1',
@@ -71,6 +74,7 @@ const mockQuizzes: Quiz[] = [
   },
   {
     id: '3',
+    name: '',
     title: "Shakespeare's Works",
     description: 'Analysis of classic literature',
     teacherId: 'teacher1',
@@ -88,6 +92,7 @@ const mockQuizzes: Quiz[] = [
   },
   {
     id: '4',
+    name: '',
     title: 'World History: Ancient Civilizations',
     description: 'Explore the rise and fall of ancient empires',
     teacherId: 'teacher1',
@@ -105,6 +110,7 @@ const mockQuizzes: Quiz[] = [
   },
   {
     id: '5',
+    name: '',
     title: 'Basic Chemistry',
     description: 'Fundamental chemical principles and reactions',
     teacherId: 'teacher1',
@@ -135,7 +141,7 @@ export default function ManageQuizzesPage() {
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created');
   const [isLoading, setIsLoading] = useState(false);
-
+  const user = useAuth();
   // For demo, use the first active quiz and mock teacher
   const activeQuiz = quizzes.find((q) => q.status === 'active');
   const teacherId = mockUser.id;
@@ -224,7 +230,7 @@ export default function ManageQuizzesPage() {
   ) as string[];
 
   return (
-    <DashboardLayout user={mockUser}>
+    <DashboardLayout>
       {/* Pending Grading Panel */}
       {activeQuiz && (
         <PendingGradingPanel quizId={activeQuiz.id} teacherId={teacherId} />

@@ -148,7 +148,9 @@ export function QuizCard({ quiz, onAction }: QuizCardProps) {
           {/* Status and Subject */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Badge variant="secondary" className="text-xs max-w-[60%] truncate">
-              {quiz.subject}
+              {typeof quiz.subject === 'string'
+                ? quiz.subject
+                : quiz.subject?.name || ''}
             </Badge>
             <Badge
               className={`text-xs ${getStatusColor(quiz.status || 'draft')}`}

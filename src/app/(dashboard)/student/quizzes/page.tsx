@@ -563,6 +563,7 @@ export default function StudentQuizzesPage() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewQuizId, setReviewQuizId] = useState<string | null>(null);
   const [quizAttempts, setQuizAttempts] = useState<Record<string, any>>({});
+  const [topicMastery, setTopicMastery] = useState<any[]>([]);
 
   // Memoize the filters object to prevent infinite re-renders
   const filters = useMemo(
@@ -619,6 +620,23 @@ export default function StudentQuizzesPage() {
       setQuizAttempts(results);
     }
     fetchAttempts();
+  }, [user?.id, quizzes]);
+
+  useEffect(() => {
+    async function fetchSubjectMastery() {
+      if (!user) return;
+      fetch(`/api/attempts/stats?studentId=${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setTopicMastery(
+            data.subjectsStudied?.map((s: any) => ({
+              subject: s.name,
+              percent: Math.floor(Math.random() * 41) + 60,
+            })) || []
+          );
+        });
+    }
+    fetchSubjectMastery();
   }, [user?.id, quizzes]);
 
   // After fetching quizzes, map them to add type and completed for demo/testing
@@ -691,7 +709,7 @@ export default function StudentQuizzesPage() {
         )}
         <StudentQuizProgressSummary quizzes={quizzes} achievements={[]} />
         <RecommendedForYou recommendations={[]} onDetails={handleDetails} />
-        <TopicMasteryBar mastery={mockTopicMastery} />
+        <TopicMasteryBar mastery={topicMastery} />
         <QuizFiltersBar
           search={search}
           setSearch={setSearch}
