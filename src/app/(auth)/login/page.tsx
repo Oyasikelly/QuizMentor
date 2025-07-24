@@ -457,7 +457,7 @@ export default function LoginPage() {
                         size="sm"
                         onClick={() => handleDemoLogin('student')}
                         disabled={isLoading}
-                        className=" flex-1 text-xs px-16 py-2 sm:text-sm"
+                        className=" flex-1 text-xs px-12 py-2 sm:text-sm"
                       >
                         Demo Student
                       </Button>
@@ -466,7 +466,7 @@ export default function LoginPage() {
                         size="sm"
                         onClick={() => handleDemoLogin('teacher')}
                         disabled={isLoading}
-                        className=" flex-1 text-xs px-16 py-2 sm:text-sm"
+                        className=" flex-1 text-xs px-12 py-2 sm:text-sm"
                       >
                         Demo Teacher
                       </Button>

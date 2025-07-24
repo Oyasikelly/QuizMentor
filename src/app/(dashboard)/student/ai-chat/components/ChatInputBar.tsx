@@ -22,7 +22,7 @@ export function ChatInputBar({
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button
           type="button"
           size="icon"
