@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
+    const teacherId = searchParams.get('teacherId');
     const subjectId = searchParams.get('subjectId');
     const unitId = searchParams.get('unitId');
     let quizzes = [];
@@ -43,6 +44,41 @@ export async function GET(request: NextRequest) {
         questionsCount: q._count?.questions ?? 0,
         _count: undefined,
       }));
+    } else if (teacherId) {
+      // Find the teacher profile and their organization/subjects
+      const teacher = await prisma.teacher.findUnique({
+        where: { userId: teacherId },
+        include: { subjects: true, user: true },
+      });
+      if (!teacher) {
+        return NextResponse.json(
+          { quizzes: [], message: 'Teacher not found.' },
+          { status: 200 }
+        );
+      }
+      const orgId = teacher.user.organizationId;
+      const subjectIds = teacher.subjects.map((s) => s.id);
+      // Find quizzes created by this teacher or for subjects they teach, strictly in their org
+      quizzes = await prisma.quiz.findMany({
+        where: {
+          organizationId: orgId,
+          OR: [
+            { teacherId },
+            { subjectId: { in: subjectIds.length > 0 ? subjectIds : [''] } },
+          ],
+        },
+        include: {
+          teacher: true,
+          subject: true,
+          _count: { select: { questions: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      quizzes = quizzes.map((q) => ({
+        ...q,
+        questionsCount: q._count?.questions ?? 0,
+        _count: undefined,
+      }));
     } else {
       // Fallback: return all published quizzes
       quizzes = await prisma.quiz.findMany({
@@ -75,12 +111,55 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    // TODO: Implement quiz creation logic
-    return NextResponse.json({
-      message: 'Quiz creation endpoint - implementation coming soon',
+    const {
+      title,
+      description,
+      questions,
+      teacherId,
+      subjectId,
+      isPublished = false,
+      organizationId,
+    } = body;
+    if (!title || !questions || !teacherId) {
+      return NextResponse.json(
+        { error: 'Missing required fields.' },
+        { status: 400 }
+      );
+    }
+    // Map template question types to Prisma enum values
+    const typeMap: Record<string, string> = {
+      'multiple-choice': 'MULTIPLE_CHOICE',
+      'short-answer': 'SHORT_ANSWER',
+      'true-false': 'TRUE_FALSE',
+      'fill-in-blank': 'SHORT_ANSWER',
+      essay: 'SHORT_ANSWER',
+    };
+    // Create the quiz
+    const quiz = await prisma.quiz.create({
+      data: {
+        title,
+        description,
+        teacherId,
+        subjectId: subjectId || undefined,
+        isPublished,
+        organizationId,
+        questions: {
+          create: questions.map((q: any, idx: number) => ({
+            text: q.text,
+            type: typeMap[q.type] || q.type,
+            options: q.options ?? [],
+            correctAnswer: q.correctAnswer ?? '',
+            order: idx,
+            organizationId,
+            // Add other fields as needed
+          })),
+        },
+      },
+      include: { questions: true },
     });
+    return NextResponse.json({ quiz });
   } catch (error) {
+    console.error('QUIZ CREATION ERROR:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

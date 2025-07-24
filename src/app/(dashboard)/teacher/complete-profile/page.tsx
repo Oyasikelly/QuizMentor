@@ -19,7 +19,7 @@ export default function TeacherCompleteProfilePage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    department: '',
+    unitId: '', // store selected unit's ID
     subjectIds: [] as string[], // allow multiple subjects
     phoneNumber: '',
     organizationId: '',
@@ -189,24 +189,21 @@ export default function TeacherCompleteProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="department">Unit/Department</Label>
-
               <select
                 id="department"
                 className="w-full border rounded px-3 py-2 bg-background"
-                value={formData.department}
-                onChange={(e) =>
-                  handleInputChange('department', e.target.value)
-                }
+                value={formData.unitId}
+                onChange={(e) => handleInputChange('unitId', e.target.value)}
                 disabled={isLoading || unitsLoading || !formData.organizationId}
                 required
               >
-                <option>
+                <option value="">
                   {isLoading
                     ? 'Loading units/departments...'
                     : 'select your unit department'}
                 </option>
                 {units.map((unit) => (
-                  <option key={unit.id} value={unit.name}>
+                  <option key={unit.id} value={unit.id}>
                     {unit.name}
                   </option>
                 ))}

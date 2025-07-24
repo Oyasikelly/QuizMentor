@@ -49,23 +49,36 @@ export default function QuestionEditor({
   const [activeTab, setActiveTab] = useState('editor');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const difficultyLevels = getDifficultyLevels();
+  console.log('[QuestionEditor] activeTab:', activeTab);
 
-  useEffect(() => {
-    if (questions.length > 0 && !selectedQuestion) {
-      setSelectedQuestion(questions[0]);
-      setEditingQuestion({ ...questions[0] });
-    }
-  }, [questions, selectedQuestion]);
+  const difficultyLevels = getDifficultyLevels();
 
   const addQuestion = (type: QuestionType) => {
     const newQuestion = createQuestionFromTemplate(type, questions.length);
     const updatedQuestions = [...questions, newQuestion];
     onQuestionsChange(updatedQuestions);
+    // Always select and edit the new question, and switch to editor
     setSelectedQuestion(newQuestion);
     setEditingQuestion({ ...newQuestion });
     setActiveTab('editor');
   };
+
+  // Always keep selectedQuestion and editingQuestion in sync with questions
+  useEffect(() => {
+    if (
+      questions.length > 0 &&
+      (!selectedQuestion ||
+        !questions.find((q) => q.id === selectedQuestion.id))
+    ) {
+      setSelectedQuestion(questions[questions.length - 1]);
+      setEditingQuestion({ ...questions[questions.length - 1] });
+      setActiveTab('editor');
+    }
+    if (questions.length === 0) {
+      setSelectedQuestion(null);
+      setEditingQuestion(null);
+    }
+  }, [questions]);
 
   const updateQuestion = (updates: Partial<Question>) => {
     if (!editingQuestion) return;
@@ -152,7 +165,7 @@ export default function QuestionEditor({
     if (question.type === 'true-false') {
       if (
         !question.correctAnswer ||
-        !['true', 'false'].includes(question.correctAnswer)
+        !['true', 'false'].includes(question.correctAnswer as string)
       ) {
         errors.correctAnswer =
           'True/False questions must have "true" or "false" as correct answer';
@@ -254,7 +267,13 @@ export default function QuestionEditor({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Questions</span>
-                <Button size="sm" onClick={() => setActiveTab('add')}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    console.log('[QuestionEditor] Add Question button clicked');
+                    setActiveTab('add');
+                  }}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Question
                 </Button>
@@ -462,7 +481,9 @@ export default function QuestionEditor({
                         <Card
                           key={type}
                           className="cursor-pointer hover:shadow-md transition-shadow"
-                          onClick={() => addQuestion(type as QuestionType)}
+                          onClick={() => {
+                            addQuestion(type as QuestionType);
+                          }}
                         >
                           <CardContent className="p-4">
                             <div className="flex items-center space-x-3">

@@ -26,19 +26,39 @@ export async function GET(request: NextRequest) {
         },
       });
     } else if (teacherId) {
-      // Find subjects assigned to this teacher (many-to-many through TeacherSubject)
+      // Find the teacher profile
+      const teacher = await prisma.teacher.findUnique({
+        where: { userId: teacherId },
+      });
+      if (!teacher) {
+        return NextResponse.json(
+          {
+            subjects: [],
+            message: 'Teacher not found or not assigned to any subjects.',
+          },
+          { status: 200 }
+        );
+      }
+      // Find subjects assigned to this teacher (many-to-many through teachers relation)
       subjects = await prisma.subject.findMany({
         where: {
-          TeacherSubjects: {
-            some: { teacher: { userId: teacherId } },
+          teachers: {
+            some: { userId: teacherId },
           },
         },
       });
+      if (!subjects || subjects.length === 0) {
+        return NextResponse.json(
+          { subjects: [], message: 'No subjects assigned to this teacher.' },
+          { status: 200 }
+        );
+      }
     } else {
       subjects = await prisma.subject.findMany();
     }
     return NextResponse.json({ subjects });
   } catch (error) {
+    console.error('SUBJECTS API ERROR:', error);
     return NextResponse.json(
       { error: 'Failed to fetch subjects.' },
       { status: 500 }

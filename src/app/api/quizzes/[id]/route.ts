@@ -33,3 +33,110 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const quizId = params.id;
+  if (!quizId) {
+    return NextResponse.json(
+      { error: 'Quiz ID is required.' },
+      { status: 400 }
+    );
+  }
+  try {
+    await prisma.quiz.delete({ where: { id: quizId } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to delete quiz.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const quizId = params.id;
+  if (!quizId) {
+    return NextResponse.json(
+      { error: 'Quiz ID is required.' },
+      { status: 400 }
+    );
+  }
+  try {
+    const body = await request.json();
+    // Only allow updating isPublished or status
+    const { isPublished, status } = body;
+    const updatedQuiz = await prisma.quiz.update({
+      where: { id: quizId },
+      data: {
+        ...(typeof isPublished === 'boolean' ? { isPublished } : {}),
+        ...(status ? { status } : {}),
+      },
+    });
+    return NextResponse.json({ quiz: updatedQuiz });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to update quiz.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const quizId = params.id;
+  if (!quizId) {
+    return NextResponse.json(
+      { error: 'Quiz ID is required.' },
+      { status: 400 }
+    );
+  }
+  try {
+    // Find the quiz and its questions
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: { questions: true },
+    });
+    if (!quiz) {
+      return NextResponse.json({ error: 'Quiz not found.' }, { status: 404 });
+    }
+    // Create a new quiz with copied data
+    const newQuiz = await prisma.quiz.create({
+      data: {
+        title: quiz.title + ' (Copy)',
+        description: quiz.description,
+        teacherId: quiz.teacherId,
+        subjectId: quiz.subjectId,
+        organizationId: quiz.organizationId,
+        isPublished: false,
+        totalPoints: quiz.totalPoints,
+        timeLimit: quiz.timeLimit,
+        questions: {
+          create: quiz.questions.map((q) => ({
+            text: q.text,
+            type: q.type,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            points: q.points,
+            order: q.order,
+            organizationId: quiz.organizationId,
+          })),
+        },
+      },
+      include: { questions: true },
+    });
+    return NextResponse.json({ quiz: newQuiz });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to duplicate quiz.' },
+      { status: 500 }
+    );
+  }
+}

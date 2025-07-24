@@ -122,14 +122,15 @@ export default function LoginPage() {
           router.push('/student');
         }
       } else if (data.user.role === 'teacher') {
-        if (
-          !data.user.department ||
-          !data.user.subjectsTaught ||
-          !data.user.phoneNumber
-        ) {
-          router.push('/teacher/complete-profile');
-        } else {
+        // New: Check teacher profile completion via API
+        const profileRes = await fetch(
+          `/api/profile/complete?userId=${data.user.id}`
+        );
+        const profile = await profileRes.json();
+        if (profile && profile.department) {
           router.push('/teacher');
+        } else {
+          router.push('/teacher/complete-profile');
         }
       } else {
         router.push('/');

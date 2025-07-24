@@ -94,7 +94,7 @@ export default function CreateQuizPage() {
           router.push('/teacher/create-quiz/from-scratch');
           break;
         case 'from-template':
-          router.push('/teacher/create-quiz/from-scratch?template=true');
+          router.push('/teacher/create-quiz/from-template');
           break;
       }
     } catch (error) {

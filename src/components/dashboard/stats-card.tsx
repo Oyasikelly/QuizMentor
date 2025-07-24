@@ -13,6 +13,7 @@ interface StatsCardProps {
     isPositive: boolean;
   };
   className?: string;
+  subtitle?: React.ReactNode; // new
 }
 
 export function StatsCard({
@@ -22,6 +23,7 @@ export function StatsCard({
   icon: Icon,
   trend,
   className,
+  subtitle,
 }: StatsCardProps) {
   return (
     <Card className={cn('w-full max-w-xs sm:max-w-sm h-full', className)}>
@@ -31,6 +33,9 @@ export function StatsCard({
       </CardHeader>
       <CardContent className="px-4 sm:px-6 pb-4">
         <div className="text-2xl font-bold">{value}</div>
+        {subtitle && (
+          <div className="text-xs text-muted-foreground mt-1">{subtitle}</div>
+        )}
         {description && (
           <p className="text-xs text-muted-foreground mt-1">{description}</p>
         )}

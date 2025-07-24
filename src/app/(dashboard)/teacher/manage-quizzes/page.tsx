@@ -20,6 +20,13 @@ import { Quiz } from '@/types/quiz';
 import { useRouter } from 'next/navigation';
 import PendingGradingPanel from '@/components/teacher/manage-quizzes/PendingGradingPanel';
 import { useAuth } from '@/hooks/useAuth';
+import QuizPreview from '@/components/teacher/quiz-creator/quiz-preview';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 // Mock user data for dashboard layout
 const mockUser = {
@@ -133,18 +140,66 @@ type QuizStatus = 'all' | 'active' | 'draft' | 'archived';
 
 export default function ManageQuizzesPage() {
   const router = useRouter();
-  const [quizzes, setQuizzes] = useState<Quiz[]>(mockQuizzes);
-  const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>(mockQuizzes);
+  const { user } = useAuth();
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [filteredQuizzes, setFilteredQuizzes] = useState<Quiz[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuizStatus>('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created');
   const [isLoading, setIsLoading] = useState(false);
-  const user = useAuth();
-  // For demo, use the first active quiz and mock teacher
+  const [error, setError] = useState<string | null>(null);
+  const [previewQuizId, setPreviewQuizId] = useState<string | null>(null);
+  const [previewQuiz, setPreviewQuiz] = useState<Quiz | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  // Fetch quizzes from API
+  useEffect(() => {
+    async function fetchQuizzes() {
+      if (!user?.id) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/quizzes?teacherId=${user.id}`);
+        if (!res.ok) throw new Error('Failed to fetch quizzes');
+        const data = await res.json();
+        setQuizzes(data.quizzes || []);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch quizzes');
+        setQuizzes([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchQuizzes();
+  }, [user]);
+
+  // For demo, use the first active quiz and teacherId from user
   const activeQuiz = quizzes.find((q) => q.status === 'active');
-  const teacherId = mockUser.id;
+  const teacherId = user?.id || '';
+
+  // Fetch quiz for preview
+  useEffect(() => {
+    if (!previewQuizId) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    fetch(`/api/quizzes/${previewQuizId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.quiz) setPreviewQuiz(data.quiz);
+        else setPreviewError(data.error || 'Quiz not found');
+      })
+      .catch(() => setPreviewError('Failed to load quiz'))
+      .finally(() => setPreviewLoading(false));
+  }, [previewQuizId]);
+
+  const handleClosePreview = () => {
+    setPreviewQuizId(null);
+    setPreviewQuiz(null);
+    setPreviewError(null);
+  };
 
   // Calculate stats
   const stats = {
@@ -157,8 +212,6 @@ export default function ManageQuizzesPage() {
   // Filter and sort quizzes
   useEffect(() => {
     let filtered = [...quizzes];
-
-    // Search filter
     if (searchQuery) {
       filtered = filtered.filter(
         (quiz) =>
@@ -169,20 +222,14 @@ export default function ManageQuizzesPage() {
             .includes(searchQuery.toLowerCase())
       );
     }
-
-    // Status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter((quiz) => quiz.status === statusFilter);
     }
-
-    // Subject filter
     if (subjectFilter !== 'all') {
       filtered = filtered.filter(
         (quiz) => quiz.subject?.name === subjectFilter
       );
     }
-
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
@@ -201,27 +248,75 @@ export default function ManageQuizzesPage() {
           return 0;
       }
     });
-
     setFilteredQuizzes(filtered);
   }, [quizzes, searchQuery, statusFilter, subjectFilter, sortBy]);
 
-  const handleQuizAction = (quizId: string, action: string) => {
+  const handleQuizAction = async (quizId: string, action: string) => {
     switch (action) {
       case 'edit':
         router.push(`/teacher/edit-quiz/${quizId}`);
         break;
       case 'preview':
-        // Navigate to preview page
+        setPreviewQuizId(quizId);
         break;
-      case 'duplicate':
-        // Handle duplicate logic
+      case 'duplicate': {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const res = await fetch(`/api/quizzes/${quizId}`, { method: 'POST' });
+          if (!res.ok) throw new Error('Failed to duplicate quiz');
+          const data = await res.json();
+          if (data.quiz) {
+            setQuizzes((prev) => [data.quiz, ...prev]);
+          }
+        } catch (err: any) {
+          setError(err.message || 'Failed to duplicate quiz');
+        } finally {
+          setIsLoading(false);
+        }
         break;
-      case 'archive':
-        // Handle archive logic
+      }
+      case 'archive': {
+        setIsLoading(true);
+        setError(null);
+        try {
+          // Archive: set isPublished to false (or status to 'archived' if you use a status field)
+          const res = await fetch(`/api/quizzes/${quizId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isPublished: false, status: 'archived' }),
+          });
+          if (!res.ok) throw new Error('Failed to archive quiz');
+          setQuizzes((prev) =>
+            prev.map((q) =>
+              q.id === quizId
+                ? { ...q, isPublished: false, status: 'archived' }
+                : q
+            )
+          );
+        } catch (err: any) {
+          setError(err.message || 'Failed to archive quiz');
+        } finally {
+          setIsLoading(false);
+        }
         break;
-      case 'delete':
-        // Handle delete logic
+      }
+      case 'delete': {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const res = await fetch(`/api/quizzes/${quizId}`, {
+            method: 'DELETE',
+          });
+          if (!res.ok) throw new Error('Failed to delete quiz');
+          setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+        } catch (err: any) {
+          setError(err.message || 'Failed to delete quiz');
+        } finally {
+          setIsLoading(false);
+        }
         break;
+      }
     }
   };
 
@@ -314,8 +409,16 @@ export default function ManageQuizzesPage() {
           onViewModeChange={setViewMode}
         />
 
-        {/* Quiz Display */}
-        {filteredQuizzes.length === 0 ? (
+        {/* Loading/Error State */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <span className="text-lg">Loading quizzes...</span>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center py-12">
+            <span className="text-lg text-red-500">{error}</span>
+          </div>
+        ) : filteredQuizzes.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <div className="space-y-4">
@@ -368,6 +471,94 @@ export default function ManageQuizzesPage() {
           </div>
         )}
       </div>
+      <Dialog open={!!previewQuizId} onOpenChange={handleClosePreview}>
+        <DialogContent
+          className="max-w-xl w-full p-0 sm:p-6 sm:rounded-lg sm:top-1/2 sm:left-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%] fixed bottom-0 left-0 right-0 top-auto h-[90dvh] sm:h-auto overflow-y-auto transition-all duration-300"
+          showCloseButton
+        >
+          {/* Visually hidden DialogTitle for accessibility */}
+          <DialogTitle className="sr-only">Quiz Preview</DialogTitle>
+          <div className="relative h-full flex flex-col bg-background rounded-t-lg sm:rounded-lg">
+            <div className="sticky top-0 z-10 bg-background p-4 border-b flex items-center justify-end">
+              <button
+                onClick={handleClosePreview}
+                className="rounded-full p-2 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <span className="sr-only">Close</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              {previewLoading ? (
+                <div className="py-8 text-center">Loading quiz...</div>
+              ) : previewError ? (
+                <div className="py-8 text-center text-red-500">
+                  {previewError}
+                </div>
+              ) : previewQuiz ? (
+                <QuizPreview
+                  quiz={{
+                    title: previewQuiz.title,
+                    description: previewQuiz.description,
+                    subjectId: previewQuiz.subjectId || '',
+                    category: '',
+                    difficulty: 'Medium',
+                    tags: [],
+                    estimatedDuration: 1,
+                    timeLimit: previewQuiz.timeLimit ?? null,
+                    showTimer: false,
+                    autoSubmit: false,
+                    passingScore: 70,
+                    showScoreImmediately: false,
+                    allowRetakes: false,
+                    maxAttempts: 1,
+                    startDate: new Date(),
+                    endDate: new Date(),
+                    assignToClasses: [],
+                    assignToStudents: [],
+                    requirePassword: false,
+                    password: '',
+                    questionsPerPage: 1,
+                    randomizeQuestions: false,
+                    randomizeAnswers: false,
+                    showQuestionNumbers: true,
+                  }}
+                  questions={(previewQuiz.questions || []).map((q) => ({
+                    id: q.id,
+                    type: q.type as any,
+                    question: q.text,
+                    options: q.options,
+                    correctAnswer: q.correctAnswer,
+                    explanation: '',
+                    points: q.points ?? 1,
+                    difficulty: 'Medium',
+                    tags: [],
+                    category: '',
+                    order: q.order ?? 0,
+                  }))}
+                  onPublish={async () => {}}
+                  onSaveDraft={async () => {}}
+                  isPublishing={false}
+                  isSaving={false}
+                />
+              ) : null}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

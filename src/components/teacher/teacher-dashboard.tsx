@@ -27,6 +27,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { Quiz } from '@/types/quiz';
+import { useEffect, useState } from 'react';
 
 interface TeacherDashboardProps {
   user: {
@@ -66,9 +67,43 @@ export function TeacherDashboard({
   pendingAssignments,
   isLoading = false,
 }: TeacherDashboardProps) {
-  if (user.role !== 'teacher') return null;
+  const [metrics, setMetrics] = useState<{
+    studentsInSubjects: number;
+    studentsInDepartment: number;
+    overlap: number;
+    activeQuizzes?: number;
+    activeQuizzesTrend?: number;
+  } | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
 
-  if (isLoading) {
+  useEffect(() => {
+    async function fetchMetrics() {
+      setMetricsLoading(true);
+      setMetricsError(null);
+      try {
+        const res = await fetch(
+          `/api/teacher/teacher-dashboard-metrics?userId=${user.id}`
+        );
+        if (!res.ok) throw new Error('Failed to fetch metrics');
+        const data = await res.json();
+        setMetrics(data);
+      } catch (err) {
+        setMetricsError('Could not load student metrics.');
+        setMetrics({
+          studentsInSubjects: 0,
+          studentsInDepartment: 0,
+          overlap: 0,
+        });
+      } finally {
+        setMetricsLoading(false);
+      }
+    }
+    if (user.role === 'teacher') fetchMetrics();
+  }, [user.id, user.role]);
+
+  if (user.role !== 'teacher') return null;
+  if (isLoading || metricsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner size="lg" />
@@ -99,16 +134,30 @@ export function TeacherDashboard({
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Students"
-          value={stats.totalStudents}
+          title="Students in Your Subjects"
+          value={metrics?.studentsInSubjects ?? 0}
           icon={Users}
-          trend={{ value: 8, isPositive: true }}
+          trend={{ value: 0, isPositive: true }}
+          subtitle={
+            metrics && metrics.overlap > 0
+              ? `${metrics.overlap} also in your department`
+              : undefined
+          }
+        />
+        <StatsCard
+          title="Students in Your Department"
+          value={metrics?.studentsInDepartment ?? 0}
+          icon={Users}
+          trend={{ value: 0, isPositive: true }}
         />
         <StatsCard
           title="Active Quizzes"
-          value={stats.activeQuizzes}
+          value={metrics?.activeQuizzes ?? 0}
           icon={BookOpen}
-          trend={{ value: 3, isPositive: true }}
+          trend={{
+            value: metrics?.activeQuizzesTrend ?? 0,
+            isPositive: (metrics?.activeQuizzesTrend ?? 0) >= 0,
+          }}
         />
         <StatsCard
           title="Completion Rate"

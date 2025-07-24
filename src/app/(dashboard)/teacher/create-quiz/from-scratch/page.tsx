@@ -66,8 +66,13 @@ export default function FromScratchPage() {
   const [currentStep, setCurrentStep] = useState<CreationStep>('settings');
   const [quizSettings, setQuizSettings] = useState<Partial<QuizSettings>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  // Debug log: log questions state in parent on every render
+  useEffect(() => {
+    console.log('[FromScratchPage] questions state:', questions);
+  }, [questions]);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const steps = [
     {
@@ -106,12 +111,37 @@ export default function FromScratchPage() {
 
   const handlePublish = async () => {
     setIsPublishing(true);
+    setError(null);
     try {
-      // Publish logic here
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      router.push('/teacher');
-    } catch (error) {
-      console.error('Failed to publish quiz:', error);
+      if (!quizSettings.title || !quizSettings.subjectId || !user?.id) {
+        setError('Title, subject, and teacher are required.');
+        setIsPublishing(false);
+        return;
+      }
+      // Fetch organizationId from user
+      const organizationId = user.organizationId;
+      const res = await fetch('/api/quizzes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: quizSettings.title,
+          description: quizSettings.description || '',
+          questions,
+          teacherId: user.id,
+          subjectId: quizSettings.subjectId,
+          organizationId,
+          isPublished: true,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to publish quiz.');
+        setIsPublishing(false);
+        return;
+      }
+      router.push('/teacher/manage-quizzes');
+    } catch (error: any) {
+      setError(error.message || 'Failed to publish quiz.');
     } finally {
       setIsPublishing(false);
     }
@@ -163,7 +193,19 @@ export default function FromScratchPage() {
         return (
           <QuestionEditor
             questions={questions}
-            onQuestionsChange={handleQuestionsChange}
+            onQuestionsChange={(updatedQuestions) => {
+              console.log(
+                '[FromScratchPage] onQuestionsChange called:',
+                updatedQuestions
+              );
+              setQuestions(updatedQuestions);
+              setTimeout(() => {
+                console.log(
+                  '[FromScratchPage] questions state after setQuestions:',
+                  questions
+                );
+              }, 100);
+            }}
             onNext={handleNext}
           />
         );
@@ -252,6 +294,9 @@ export default function FromScratchPage() {
                 </div>
               </CardContent>
             </Card>
+            {error && (
+              <div className="text-red-500 text-center mt-2">{error}</div>
+            )}
           </div>
         );
       default:
