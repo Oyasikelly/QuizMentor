@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, QuizStatus } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
       subjectId,
       isPublished = false,
       organizationId,
+      status,
     } = body;
     if (!title || !questions || !teacherId) {
       return NextResponse.json(
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
         subjectId: subjectId || undefined,
         isPublished,
         organizationId,
+        status: status || QuizStatus.DRAFT,
         questions: {
           create: questions.map((q: any, idx: number) => ({
             text: q.text,

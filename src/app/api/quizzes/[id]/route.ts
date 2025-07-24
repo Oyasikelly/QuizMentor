@@ -4,9 +4,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const quizId = params.id;
+  // Next.js App Router dynamic route params may be a Promise in some cases
+  const { id } = context.params;
+  const quizId = id;
   if (!quizId) {
     return NextResponse.json(
       { error: 'Quiz ID is required.' },
@@ -36,9 +38,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const quizId = params.id;
+  const { id } = context.params;
+  const quizId = id;
   if (!quizId) {
     return NextResponse.json(
       { error: 'Quiz ID is required.' },
@@ -58,9 +61,10 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const quizId = params.id;
+  const { id } = context.params;
+  const quizId = id;
   if (!quizId) {
     return NextResponse.json(
       { error: 'Quiz ID is required.' },
@@ -89,9 +93,10 @@ export async function PATCH(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const quizId = params.id;
+  const { id } = context.params;
+  const quizId = id;
   if (!quizId) {
     return NextResponse.json(
       { error: 'Quiz ID is required.' },
@@ -116,6 +121,7 @@ export async function POST(
         subjectId: quiz.subjectId,
         organizationId: quiz.organizationId,
         isPublished: false,
+        status: 'DRAFT', // Duplicates are drafts by default
         totalPoints: quiz.totalPoints,
         timeLimit: quiz.timeLimit,
         questions: {

@@ -114,6 +114,7 @@ model Quiz {
   timeLimit      Int?
   totalPoints    Int           @default(0)
   isPublished    Boolean       @default(false)
+  status         QuizStatus    @default(DRAFT)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   teacherId      String
@@ -236,4 +237,10 @@ enum QuestionType {
   MULTIPLE_CHOICE
   TRUE_FALSE
   SHORT_ANSWER
+}
+
+enum QuizStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
 }

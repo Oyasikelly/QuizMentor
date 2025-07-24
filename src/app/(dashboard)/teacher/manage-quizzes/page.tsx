@@ -146,7 +146,8 @@ export default function ManageQuizzesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuizStatus>('all');
-  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [subjectFilter, setSubjectFilter] = useState<string[]>(['all']);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [sortBy, setSortBy] = useState('created');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -225,31 +226,43 @@ export default function ManageQuizzesPage() {
     if (statusFilter !== 'all') {
       filtered = filtered.filter((quiz) => quiz.status === statusFilter);
     }
-    if (subjectFilter !== 'all') {
+    if (subjectFilter.length && subjectFilter[0] !== 'all') {
       filtered = filtered.filter(
-        (quiz) => quiz.subject?.name === subjectFilter
+        (quiz) => quiz.subject && subjectFilter.includes(quiz.subject.id)
       );
     }
     filtered.sort((a, b) => {
+      let cmp = 0;
       switch (sortBy) {
         case 'name':
-          return a.title.localeCompare(b.title);
+          cmp = a.title.localeCompare(b.title);
+          break;
         case 'created':
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
+          cmp =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
         case 'modified':
-          return (
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-          );
+          cmp =
+            new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+          break;
         case 'attempts':
-          return (b.attempts || 0) - (a.attempts || 0);
+          cmp = (a.attempts || 0) - (b.attempts || 0);
+          break;
         default:
-          return 0;
+          cmp = 0;
       }
+      return sortOrder === 'asc' ? cmp : -cmp;
     });
     setFilteredQuizzes(filtered);
-  }, [quizzes, searchQuery, statusFilter, subjectFilter, sortBy]);
+  }, [quizzes, searchQuery, statusFilter, subjectFilter, sortBy, sortOrder]);
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setSubjectFilter(['all']);
+    setSortBy('created');
+    setSortOrder('desc');
+  };
 
   const handleQuizAction = async (quizId: string, action: string) => {
     switch (action) {
@@ -320,9 +333,16 @@ export default function ManageQuizzesPage() {
     }
   };
 
+  // Extract unique subjects as array of { id, name }
   const subjects = Array.from(
-    new Set(quizzes.map((q) => q.subject?.name).filter(Boolean))
-  ) as string[];
+    quizzes.reduce((acc, q) => {
+      if (q.subject && q.subject.id && q.subject.name) {
+        acc.set(q.subject.id, { id: q.subject.id, name: q.subject.name });
+      }
+      return acc;
+    }, new Map<string, { id: string; name: string }>()),
+    ([, value]) => value
+  );
 
   return (
     <DashboardLayout>
@@ -405,8 +425,13 @@ export default function ManageQuizzesPage() {
           subjects={subjects}
           sortBy={sortBy}
           onSortChange={setSortBy}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          onResetFilters={handleResetFilters}
+          isLoading={isLoading}
+          multiSelectSubjects={false}
         />
 
         {/* Loading/Error State */}
@@ -426,20 +451,23 @@ export default function ManageQuizzesPage() {
                 <h3 className="text-xl font-semibold">
                   {searchQuery ||
                   statusFilter !== 'all' ||
-                  subjectFilter !== 'all'
+                  subjectFilter.length !== 1 ||
+                  subjectFilter[0] !== 'all'
                     ? 'No quizzes found'
                     : 'No quizzes yet'}
                 </h3>
                 <p className="text-muted-foreground">
                   {searchQuery ||
                   statusFilter !== 'all' ||
-                  subjectFilter !== 'all'
+                  subjectFilter.length !== 1 ||
+                  subjectFilter[0] !== 'all'
                     ? 'Try adjusting your search or filters'
                     : 'Create your first quiz to get started'}
                 </p>
                 {!searchQuery &&
                   statusFilter === 'all' &&
-                  subjectFilter === 'all' && (
+                  subjectFilter.length === 1 &&
+                  subjectFilter[0] === 'all' && (
                     <Button asChild>
                       <Link href="/teacher/create-quiz">
                         <Plus className="h-4 w-4 mr-2" />
@@ -473,13 +501,39 @@ export default function ManageQuizzesPage() {
       </div>
       <Dialog open={!!previewQuizId} onOpenChange={handleClosePreview}>
         <DialogContent
-          className="max-w-xl w-full p-0 sm:p-6 sm:rounded-lg sm:top-1/2 sm:left-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%] fixed bottom-0 left-0 right-0 top-auto h-[90dvh] sm:h-auto overflow-y-auto transition-all duration-300"
+          className="
+            w-full
+            max-w-full
+            sm:max-w-2xl
+            md:max-w-3xl
+            lg:max-w-4xl
+            xl:max-w-5xl
+            p-0
+            sm:p-8
+            sm:rounded-2xl
+            sm:top-1/2
+            sm:left-1/2
+            sm:translate-x-[-50%]
+            sm:translate-y-[-50%]
+            fixed
+            bottom-0
+            left-0
+            right-0
+            top-auto
+            h-[90dvh]
+            sm:h-auto
+            overflow-y-auto
+            transition-all
+            duration-300
+            flex
+            flex-col
+          "
           showCloseButton
         >
           {/* Visually hidden DialogTitle for accessibility */}
           <DialogTitle className="sr-only">Quiz Preview</DialogTitle>
-          <div className="relative h-full flex flex-col bg-background rounded-t-lg sm:rounded-lg">
-            <div className="sticky top-0 z-10 bg-background p-4 border-b flex items-center justify-end">
+          <div className="relative flex-1 flex flex-col bg-background rounded-t-lg sm:rounded-2xl min-h-[60vh]">
+            <div className="sticky top-0 z-10 bg-background p-4 sm:p-6 border-b flex items-center justify-end">
               <button
                 onClick={handleClosePreview}
                 className="rounded-full p-2 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
@@ -501,59 +555,61 @@ export default function ManageQuizzesPage() {
                 </svg>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8">
               {previewLoading ? (
-                <div className="py-8 text-center">Loading quiz...</div>
+                <div className="py-12 text-center text-lg">Loading quiz...</div>
               ) : previewError ? (
-                <div className="py-8 text-center text-red-500">
+                <div className="py-12 text-center text-red-500 text-lg">
                   {previewError}
                 </div>
               ) : previewQuiz ? (
-                <QuizPreview
-                  quiz={{
-                    title: previewQuiz.title,
-                    description: previewQuiz.description,
-                    subjectId: previewQuiz.subjectId || '',
-                    category: '',
-                    difficulty: 'Medium',
-                    tags: [],
-                    estimatedDuration: 1,
-                    timeLimit: previewQuiz.timeLimit ?? null,
-                    showTimer: false,
-                    autoSubmit: false,
-                    passingScore: 70,
-                    showScoreImmediately: false,
-                    allowRetakes: false,
-                    maxAttempts: 1,
-                    startDate: new Date(),
-                    endDate: new Date(),
-                    assignToClasses: [],
-                    assignToStudents: [],
-                    requirePassword: false,
-                    password: '',
-                    questionsPerPage: 1,
-                    randomizeQuestions: false,
-                    randomizeAnswers: false,
-                    showQuestionNumbers: true,
-                  }}
-                  questions={(previewQuiz.questions || []).map((q) => ({
-                    id: q.id,
-                    type: q.type as any,
-                    question: q.text,
-                    options: q.options,
-                    correctAnswer: q.correctAnswer,
-                    explanation: '',
-                    points: q.points ?? 1,
-                    difficulty: 'Medium',
-                    tags: [],
-                    category: '',
-                    order: q.order ?? 0,
-                  }))}
-                  onPublish={async () => {}}
-                  onSaveDraft={async () => {}}
-                  isPublishing={false}
-                  isSaving={false}
-                />
+                <div className="w-full max-w-4xl mx-auto">
+                  <QuizPreview
+                    quiz={{
+                      title: previewQuiz.title,
+                      description: previewQuiz.description,
+                      subjectId: previewQuiz.subjectId || '',
+                      category: '',
+                      difficulty: 'Medium',
+                      tags: [],
+                      estimatedDuration: 1,
+                      timeLimit: previewQuiz.timeLimit ?? null,
+                      showTimer: false,
+                      autoSubmit: false,
+                      passingScore: 70,
+                      showScoreImmediately: false,
+                      allowRetakes: false,
+                      maxAttempts: 1,
+                      startDate: new Date(),
+                      endDate: new Date(),
+                      assignToClasses: [],
+                      assignToStudents: [],
+                      requirePassword: false,
+                      password: '',
+                      questionsPerPage: 1,
+                      randomizeQuestions: false,
+                      randomizeAnswers: false,
+                      showQuestionNumbers: true,
+                    }}
+                    questions={(previewQuiz.questions || []).map((q) => ({
+                      id: q.id,
+                      type: q.type as any,
+                      question: q.text,
+                      options: q.options,
+                      correctAnswer: q.correctAnswer,
+                      explanation: '',
+                      points: q.points ?? 1,
+                      difficulty: 'Medium',
+                      tags: [],
+                      category: '',
+                      order: q.order ?? 0,
+                    }))}
+                    onPublish={async () => {}}
+                    onSaveDraft={async () => {}}
+                    isPublishing={false}
+                    isSaving={false}
+                  />
+                </div>
               ) : null}
             </div>
           </div>

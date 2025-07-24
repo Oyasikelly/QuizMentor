@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useState, useEffect, useMemo } from 'react';
+
+interface SubjectOption {
+  id: string;
+  name: string;
+}
 
 interface FilterBarProps {
   searchQuery: string;
@@ -18,13 +24,18 @@ interface FilterBarProps {
   onStatusFilterChange: (
     status: 'all' | 'active' | 'draft' | 'archived'
   ) => void;
-  subjectFilter: string;
-  onSubjectFilterChange: (subject: string) => void;
-  subjects: string[];
+  subjectFilter: string[]; // now array for multi-select
+  onSubjectFilterChange: (subjectIds: string[]) => void;
+  subjects: SubjectOption[];
   sortBy: string;
   onSortChange: (sort: string) => void;
+  sortOrder: 'asc' | 'desc';
+  onSortOrderChange: (order: 'asc' | 'desc') => void;
   viewMode: 'card' | 'table';
   onViewModeChange: (mode: 'card' | 'table') => void;
+  onResetFilters: () => void;
+  isLoading?: boolean;
+  multiSelectSubjects?: boolean;
 }
 
 export function FilterBar({
@@ -37,9 +48,36 @@ export function FilterBar({
   subjects,
   sortBy,
   onSortChange,
+  sortOrder,
+  onSortOrderChange,
   viewMode,
   onViewModeChange,
+  onResetFilters,
+  isLoading = false,
+  multiSelectSubjects = false,
 }: FilterBarProps) {
+  // Debounced search
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (searchInput !== searchQuery) onSearchChange(searchInput);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
+
+  // Multi-select subject logic
+  const handleSubjectChange = (value: string | string[]) => {
+    if (multiSelectSubjects) {
+      if (Array.isArray(value)) onSubjectFilterChange(value);
+      else onSubjectFilterChange([value]);
+    } else {
+      onSubjectFilterChange([value as string]);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg">
       {/* Search and View Toggle */}
@@ -48,9 +86,10 @@ export function FilterBar({
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search quizzes by title, subject, or description..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="pl-10"
+            disabled={isLoading}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -58,6 +97,7 @@ export function FilterBar({
             variant={viewMode === 'card' ? 'default' : 'outline'}
             size="icon"
             onClick={() => onViewModeChange('card')}
+            disabled={isLoading}
           >
             <Grid className="h-4 w-4" />
           </Button>
@@ -65,6 +105,7 @@ export function FilterBar({
             variant={viewMode === 'table' ? 'default' : 'outline'}
             size="icon"
             onClick={() => onViewModeChange('table')}
+            disabled={isLoading}
           >
             <List className="h-4 w-4" />
           </Button>
@@ -81,7 +122,11 @@ export function FilterBar({
         {/* Status Filter */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Status:</span>
-          <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+          <Select
+            value={statusFilter}
+            onValueChange={onStatusFilterChange}
+            disabled={isLoading}
+          >
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -94,28 +139,57 @@ export function FilterBar({
           </Select>
         </div>
 
-        {/* Subject Filter */}
+        {/* Subject Filter (multi or single select) */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Subject:</span>
-          <Select value={subjectFilter} onValueChange={onSubjectFilterChange}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Subjects</SelectItem>
-              {subjects.map((subject) => (
-                <SelectItem key={subject} value={subject}>
-                  {subject}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {multiSelectSubjects ? (
+            <Select
+              value={subjectFilter}
+              onValueChange={handleSubjectChange}
+              multiple
+              disabled={isLoading}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Subjects</SelectItem>
+                {subjects.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Select
+              value={subjectFilter[0] || 'all'}
+              onValueChange={handleSubjectChange}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Subjects</SelectItem>
+                {subjects.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Sort By */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Sort by:</span>
-          <Select value={sortBy} onValueChange={onSortChange}>
+          <Select
+            value={sortBy}
+            onValueChange={onSortChange}
+            disabled={isLoading}
+          >
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -126,18 +200,29 @@ export function FilterBar({
               <SelectItem value="attempts">Attempts</SelectItem>
             </SelectContent>
           </Select>
+          {/* Sort Order Toggle */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() =>
+              onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
+            }
+            disabled={isLoading}
+            aria-label={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+          >
+            {sortOrder === 'asc' ? <span>&uarr;</span> : <span>&darr;</span>}
+          </Button>
         </div>
 
         {/* Clear Filters */}
-        {(searchQuery || statusFilter !== 'all' || subjectFilter !== 'all') && (
+        {(searchInput ||
+          statusFilter !== 'all' ||
+          (subjectFilter.length && subjectFilter[0] !== 'all')) && (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              onSearchChange('');
-              onStatusFilterChange('all');
-              onSubjectFilterChange('all');
-            }}
+            onClick={onResetFilters}
+            disabled={isLoading}
           >
             Clear Filters
           </Button>

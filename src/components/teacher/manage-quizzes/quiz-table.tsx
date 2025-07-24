@@ -121,7 +121,9 @@ export function QuizTable({ quizzes, onAction }: QuizTableProps) {
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="text-xs">
-                    {quiz.subject}
+                    {typeof quiz.subject === 'object' && quiz.subject !== null
+                      ? quiz.subject.name
+                      : quiz.subject || '-'}
                   </Badge>
                 </TableCell>
                 <TableCell>
