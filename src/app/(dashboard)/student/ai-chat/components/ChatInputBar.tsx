@@ -75,7 +75,7 @@ export function ChatInputBar({
           onClick={() => onInputChange('Can you explain this?')}
           tabIndex={0}
         >
-          <Sparkles className="w-4 h-4 mr-1" aria-hidden="true" /> Explain This
+          <Sparkles className="w-4 h-4 mr-1" aria-hidden="true" /> Explain This?
         </Button>
       </div>
       <form
