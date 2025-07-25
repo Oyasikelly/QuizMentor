@@ -201,7 +201,7 @@ function StudentQuizProgressSummary({
             <PlayCircle className="w-4 h-4" /> Continue Last Quiz
           </Button>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center items-center">
           <Button
             variant="outline"
             size="sm"
@@ -279,7 +279,7 @@ function TopicMasteryBar({ mastery }: { mastery: typeof mockTopicMastery }) {
 function QuizFiltersBar({ search, setSearch, filter, setFilter }: any) {
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-      <div className="flex-1 flex items-center gap-2">
+      <div className="flex flex-wrap gap-3">
         <Input
           placeholder="Search quizzes by title, subject, or teacher..."
           value={search}

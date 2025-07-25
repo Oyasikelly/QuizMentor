@@ -451,13 +451,13 @@ export default function LoginPage() {
                     <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
                       Try the platform
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className=" flex flex-col justify-center items-center sm:flex-row gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDemoLogin('student')}
                         disabled={isLoading}
-                        className="flex-1 text-xs sm:text-sm"
+                        className=" flex-1 text-xs px-12 py-2 sm:text-sm"
                       >
                         Demo Student
                       </Button>
@@ -466,7 +466,7 @@ export default function LoginPage() {
                         size="sm"
                         onClick={() => handleDemoLogin('teacher')}
                         disabled={isLoading}
-                        className="flex-1 text-xs sm:text-sm"
+                        className=" flex-1 text-xs px-12 py-2 sm:text-sm"
                       >
                         Demo Teacher
                       </Button>

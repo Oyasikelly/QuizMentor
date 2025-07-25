@@ -22,7 +22,7 @@ export function ChatInputBar({
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button
           type="button"
           size="icon"
@@ -75,7 +75,7 @@ export function ChatInputBar({
           onClick={() => onInputChange('Can you explain this?')}
           tabIndex={0}
         >
-          <Sparkles className="w-4 h-4 mr-1" aria-hidden="true" /> Explain This
+          <Sparkles className="w-4 h-4 mr-1" aria-hidden="true" /> Explain This?
         </Button>
       </div>
       <form
