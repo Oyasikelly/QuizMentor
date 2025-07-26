@@ -13,6 +13,7 @@ interface QuizStatsProps {
 }
 
 export function QuizStats({ stats }: QuizStatsProps) {
+  console.log(stats);
   const statCards = [
     {
       title: 'Total Quizzes',

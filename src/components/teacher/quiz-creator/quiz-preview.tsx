@@ -222,7 +222,7 @@ export default function QuizPreview({
 
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <Badge variant="outline">{quiz.subject}</Badge>
+                  <Badge variant="outline">{quiz.subjectId}</Badge>
                   <Badge variant="outline">{quiz.category}</Badge>
                   <Badge
                     variant="secondary"

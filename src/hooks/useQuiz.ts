@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Quiz, Question, QuizAttempt } from '@/types/quiz';
 
 export function useQuiz(quizId?: string) {
@@ -8,7 +8,7 @@ export function useQuiz(quizId?: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchQuiz = async (id: string) => {
+  const fetchQuiz = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -22,7 +22,7 @@ export function useQuiz(quizId?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const submitQuiz = async (answers: any) => {
     setLoading(true);
@@ -54,7 +54,7 @@ export function useQuiz(quizId?: string) {
     if (quizId) {
       fetchQuiz(quizId);
     }
-  }, [quizId]);
+  }, [quizId, fetchQuiz]);
 
   return {
     quiz,

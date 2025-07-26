@@ -105,8 +105,29 @@ export default function QuizContainer({
       question: q.text,
       options: q.options || [],
     } as any; // Only pass what is needed
-    switch (q.type) {
-      case 'MULTIPLE_CHOICE':
+
+    // Map backend enum types to frontend expected types
+    const getQuestionType = (backendType: string) => {
+      switch (backendType) {
+        case 'MULTIPLE_CHOICE':
+          return 'multiple-choice';
+        case 'TRUE_FALSE':
+          return 'true-false';
+        case 'SHORT_ANSWER':
+          return 'short-answer';
+        case 'FILL_IN_BLANK':
+          return 'fill-in-blank';
+        case 'ESSAY':
+          return 'essay';
+        default:
+          return backendType.toLowerCase();
+      }
+    };
+
+    const questionType = getQuestionType(q.type);
+
+    switch (questionType) {
+      case 'multiple-choice':
         return (
           <StudentMultipleChoice
             question={mappedQ}
@@ -147,7 +168,19 @@ export default function QuizContainer({
           />
         );
       default:
-        return <div>Unsupported question type</div>;
+        return (
+          <div className="p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-900/10">
+            <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+              Unsupported question type: {q.type}
+            </p>
+            <p className="text-sm text-yellow-600 dark:text-yellow-300 mt-1">
+              Please contact your instructor if you see this message.
+            </p>
+            <div className="mt-2 text-xs text-gray-500">
+              Debug info: Backend type: {q.type}, Mapped type: {questionType}
+            </div>
+          </div>
+        );
     }
   };
 

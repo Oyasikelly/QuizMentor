@@ -155,6 +155,10 @@ export default function ManageQuizzesPage() {
   const [previewQuiz, setPreviewQuiz] = useState<Quiz | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [attemptsData, setAttemptsData] = useState<any>(null);
+  const [attemptsLoading, setAttemptsLoading] = useState(false);
+  const [studentsData, setStudentsData] = useState<any>(null);
+  const [studentsLoading, setStudentsLoading] = useState(false);
 
   // Fetch quizzes from API
   useEffect(() => {
@@ -166,6 +170,15 @@ export default function ManageQuizzesPage() {
         const res = await fetch(`/api/quizzes?teacherId=${user.id}`);
         if (!res.ok) throw new Error('Failed to fetch quizzes');
         const data = await res.json();
+        console.log('Fetched quizzes:', data.quizzes);
+        console.log(
+          'Quiz statuses:',
+          data.quizzes?.map((q: any) => ({
+            id: q.id,
+            title: q.title,
+            status: q.status,
+          }))
+        );
         setQuizzes(data.quizzes || []);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch quizzes');
@@ -175,6 +188,48 @@ export default function ManageQuizzesPage() {
       }
     }
     fetchQuizzes();
+  }, [user]);
+
+  // Fetch attempts data
+  useEffect(() => {
+    async function fetchAttempts() {
+      if (!user?.id) return;
+      setAttemptsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/teacher/quiz-attempts?teacherId=${user.id}`
+        );
+        if (!res.ok) throw new Error('Failed to fetch attempts data');
+        const data = await res.json();
+        setAttemptsData(data);
+      } catch (err: any) {
+        console.error('Failed to fetch attempts:', err);
+        setAttemptsData(null);
+      } finally {
+        setAttemptsLoading(false);
+      }
+    }
+    fetchAttempts();
+  }, [user]);
+
+  // Fetch students data
+  useEffect(() => {
+    async function fetchStudents() {
+      if (!user?.id) return;
+      setStudentsLoading(true);
+      try {
+        const res = await fetch(`/api/teacher/students?teacherId=${user.id}`);
+        if (!res.ok) throw new Error('Failed to fetch students data');
+        const data = await res.json();
+        setStudentsData(data);
+      } catch (err: any) {
+        console.error('Failed to fetch students:', err);
+        setStudentsData(null);
+      } finally {
+        setStudentsLoading(false);
+      }
+    }
+    fetchStudents();
   }, [user]);
 
   // For demo, use the first active quiz and teacherId from user
@@ -202,13 +257,21 @@ export default function ManageQuizzesPage() {
     setPreviewError(null);
   };
 
-  // Calculate stats
+  // Calculate stats with real attempt data
   const stats = {
     totalQuizzes: quizzes.length,
     activeQuizzes: quizzes.filter((q) => q.status === 'active').length,
     draftQuizzes: quizzes.filter((q) => q.status === 'draft').length,
-    totalAttempts: quizzes.reduce((sum, q) => sum + (q.attempts || 0), 0),
+    totalAttempts: attemptsData?.totalAttempts || 0,
   };
+
+  console.log('Stats calculation:', {
+    totalQuizzes: quizzes.length,
+    activeQuizzes: quizzes.filter((q) => q.status === 'active').length,
+    draftQuizzes: quizzes.filter((q) => q.status === 'draft').length,
+    allStatuses: quizzes.map((q) => ({ id: q.id, status: q.status })),
+    attemptsData: attemptsData,
+  });
 
   // Filter and sort quizzes
   useEffect(() => {
@@ -371,6 +434,282 @@ export default function ManageQuizzesPage() {
 
         {/* Stats Cards */}
         <QuizStats stats={stats} />
+
+        {/* Attempts Breakdown */}
+        {attemptsData && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Attempts per Quiz */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Attempts per Quiz</CardTitle>
+                <CardDescription>
+                  Detailed breakdown of student attempts for each quiz
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {attemptsData.attemptsPerQuiz.length > 0 ? (
+                  <div className="space-y-3">
+                    {attemptsData.attemptsPerQuiz.map((quiz: any) => (
+                      <div
+                        key={quiz.quizId}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {quiz.quizTitle}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {quiz.subjectName}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">
+                            {quiz.attempts} attempts
+                          </div>
+                          {quiz.averageScore > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                              {quiz.averageScore}% avg
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No attempts yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Attempts per Subject */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Attempts per Subject</CardTitle>
+                <CardDescription>
+                  Student engagement across your subjects
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {attemptsData.attemptsBySubject.length > 0 ? (
+                  <div className="space-y-3">
+                    {attemptsData.attemptsBySubject.map((subject: any) => (
+                      <div
+                        key={subject.subjectName}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {subject.subjectName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {subject.quizzes} quiz
+                            {subject.quizzes !== 1 ? 'zes' : ''}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">
+                            {subject.attempts} attempts
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No attempts yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Summary Stats */}
+        {attemptsData && (
+          <Card className="bg-blue-50 dark:bg-blue-900/10">
+            <CardHeader>
+              <CardTitle className="text-lg">Engagement Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {attemptsData.summary.totalStudents}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Unique Students
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {attemptsData.recentAttempts}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Recent (30 days)
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {attemptsData.summary.averageAttemptsPerQuiz}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Avg per Quiz
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {attemptsData.attemptsBySubject.length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Active Subjects
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Students Information */}
+        {studentsData && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Students in Department */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Students in Your Department
+                </CardTitle>
+                <CardDescription>
+                  Students in the same department as you
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {studentsData.studentsInDepartment.length > 0 ? (
+                  <div className="space-y-3">
+                    {studentsData.studentsInDepartment.map((student: any) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {student.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {student.email}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {student.studentId} • {student.classYear}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground">
+                            {student.academicLevel}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No students in your department
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Students Taking Your Subjects */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Students Taking Your Subjects
+                </CardTitle>
+                <CardDescription>
+                  Students who have attempted your quizzes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {studentsData.studentsInSubjects.length > 0 ? (
+                  <div className="space-y-3">
+                    {studentsData.studentsInSubjects.map((student: any) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {student.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {student.email}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {student.studentId} • {student.classYear}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground">
+                            {student.academicLevel}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No students taking your subjects yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Student Summary Stats */}
+        {studentsData && (
+          <Card className="bg-purple-50 dark:bg-purple-900/10">
+            <CardHeader>
+              <CardTitle className="text-lg">Student Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {studentsData.summary.totalInDepartment}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    In Department
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-indigo-600">
+                    {studentsData.summary.totalInSubjects}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Taking Subjects
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-pink-600">
+                    {studentsData.summary.overlapCount}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Overlap</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-violet-600">
+                    {studentsData.summary.totalInDepartment +
+                      studentsData.summary.totalInSubjects -
+                      studentsData.summary.overlapCount}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Unique
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* How to Use Card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -604,7 +943,36 @@ export default function ManageQuizzesPage() {
                       category: '',
                       order: q.order ?? 0,
                     }))}
-                    onPublish={async () => {}}
+                    onPublish={async () => {
+                      if (!previewQuiz) return;
+                      setIsLoading(true);
+                      try {
+                        const res = await fetch(
+                          `/api/quizzes/${previewQuiz.id}`,
+                          {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              status: 'active',
+                              isPublished: true,
+                            }),
+                          }
+                        );
+                        if (!res.ok) throw new Error('Failed to publish quiz');
+                        setQuizzes((prev) =>
+                          prev.map((q: Quiz) =>
+                            q.id === previewQuiz.id
+                              ? { ...q, status: 'active', isPublished: true }
+                              : q
+                          )
+                        );
+                        setPreviewQuizId(null); // Optionally close the modal
+                      } catch (err) {
+                        alert('Failed to publish quiz');
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
                     onSaveDraft={async () => {}}
                     isPublishing={false}
                     isSaving={false}

@@ -12,13 +12,16 @@ export default function QuizClient({ id }: { id: string }) {
   const [started, setStarted] = useState(false);
   const [attemptId, setAttemptId] = useState<string | null>(null);
 
-  // Prefer contextQuiz if it matches the current quiz id
-  const quizData = contextQuiz && contextQuiz.id === id ? contextQuiz : quiz;
-  if (!quizData && loading) return <FullPageSpinner text="Loading quiz..." />;
+  // Use the fetched quiz data, fallback to context only if it matches the current id
+  const quizData =
+    quiz || (contextQuiz && contextQuiz.id === id ? contextQuiz : null);
+
+  if (loading) return <FullPageSpinner text="Loading quiz..." />;
   if (!quizData || error)
     return (
       <div className="p-8 text-center text-red-500">
         Quiz not found or failed to load.
+        {error && <div className="mt-2 text-sm">{error}</div>}
       </div>
     );
 

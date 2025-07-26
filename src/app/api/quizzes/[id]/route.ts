@@ -6,8 +6,7 @@ export async function GET(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  // Next.js App Router dynamic route params may be a Promise in some cases
-  const { id } = context.params;
+  const { id } = await context.params;
   const quizId = id;
   if (!quizId) {
     return NextResponse.json(
@@ -40,7 +39,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params;
   const quizId = id;
   if (!quizId) {
     return NextResponse.json(
@@ -63,7 +62,7 @@ export async function PATCH(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params;
   const quizId = id;
   if (!quizId) {
     return NextResponse.json(
@@ -75,15 +74,29 @@ export async function PATCH(
     const body = await request.json();
     // Only allow updating isPublished or status
     const { isPublished, status } = body;
+
+    // Map status string to enum value
+    const statusMap: Record<string, string> = {
+      active: 'ACTIVE',
+      draft: 'DRAFT',
+      archived: 'ARCHIVED',
+    };
+
+    const updateData: any = {};
+    if (typeof isPublished === 'boolean') {
+      updateData.isPublished = isPublished;
+    }
+    if (status && statusMap[status]) {
+      updateData.status = statusMap[status];
+    }
+
     const updatedQuiz = await prisma.quiz.update({
       where: { id: quizId },
-      data: {
-        ...(typeof isPublished === 'boolean' ? { isPublished } : {}),
-        ...(status ? { status } : {}),
-      },
+      data: updateData,
     });
     return NextResponse.json({ quiz: updatedQuiz });
   } catch (error) {
+    console.error('PATCH quiz error:', error);
     return NextResponse.json(
       { error: 'Failed to update quiz.' },
       { status: 500 }
@@ -95,7 +108,7 @@ export async function POST(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params;
   const quizId = id;
   if (!quizId) {
     return NextResponse.json(

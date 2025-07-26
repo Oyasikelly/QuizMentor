@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
       // Add questionsCount property to each quiz
       quizzes = quizzes.map((q) => ({
         ...q,
+        status: q.status?.toLowerCase(),
         questionsCount: q._count?.questions ?? 0,
         _count: undefined,
       }));
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
       });
       quizzes = quizzes.map((q) => ({
         ...q,
+        status: q.status?.toLowerCase(),
         questionsCount: q._count?.questions ?? 0,
         _count: undefined,
       }));
@@ -94,6 +96,7 @@ export async function GET(request: NextRequest) {
       });
       quizzes = quizzes.map((q) => ({
         ...q,
+        status: q.status?.toLowerCase(),
         questionsCount: q._count?.questions ?? 0,
         _count: undefined,
       }));

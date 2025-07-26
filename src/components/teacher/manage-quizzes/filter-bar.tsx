@@ -69,13 +69,8 @@ export function FilterBar({
   }, [searchInput]);
 
   // Multi-select subject logic
-  const handleSubjectChange = (value: string | string[]) => {
-    if (multiSelectSubjects) {
-      if (Array.isArray(value)) onSubjectFilterChange(value);
-      else onSubjectFilterChange([value]);
-    } else {
-      onSubjectFilterChange([value as string]);
-    }
+  const handleSubjectChange = (value: string) => {
+    onSubjectFilterChange([value]);
   };
 
   return (
@@ -144,9 +139,8 @@ export function FilterBar({
           <span className="text-sm text-muted-foreground">Subject:</span>
           {multiSelectSubjects ? (
             <Select
-              value={subjectFilter}
+              value={subjectFilter[0] || 'all'}
               onValueChange={handleSubjectChange}
-              multiple
               disabled={isLoading}
             >
               <SelectTrigger className="w-48">
