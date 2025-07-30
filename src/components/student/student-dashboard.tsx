@@ -20,14 +20,30 @@ import {
   BookOpen,
   Trophy,
   TrendingUp,
-  Clock,
   Target,
   Award,
   Calendar,
   BarChart3,
 } from 'lucide-react';
 import { Quiz } from '@/types/quiz';
-import { startOfWeek, startOfMonth, isAfter } from 'date-fns';
+import { startOfWeek, startOfMonth } from 'date-fns';
+
+interface Attempt {
+  id: string;
+  quizTitle: string;
+  score: number;
+  totalPoints: number;
+  completedAt: string;
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  name: string;
+}
 
 interface StudentDashboardProps {
   user: {
@@ -43,20 +59,18 @@ export function StudentDashboard({
   user,
   isLoading = false,
 }: StudentDashboardProps) {
-  if (user.role !== 'student') return null;
-
   const router = useRouter();
-  const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
+  const [recentAttempts, setRecentAttempts] = useState<Attempt[]>([]);
   const [realStats, setRealStats] = useState({
     completedQuizzesCount: 0,
     averageScore: 0,
     studyStreak: 0,
     totalPoints: 0,
   });
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [reviewQuizId, setReviewQuizId] = useState<string | null>(null);
   const [availableQuizzes, setAvailableQuizzes] = useState<Quiz[]>([]);
-  const [achievements, setAchievements] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+
+  if (user.role !== 'student') return null;
 
   useEffect(() => {
     async function fetchRecentAttempts() {
@@ -266,12 +280,10 @@ export function StudentDashboard({
                 >
                   <div className="space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {attempt.subject.name || 'Quiz'}
+                      {attempt.quizTitle}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {attempt?.title && typeof attempt.title === 'string'
-                        ? attempt.title
-                        : String(attempt?.title || 'No Subject')}
+                      Score: {attempt.score} / {attempt.totalPoints}
                     </p>
                   </div>
                   <div className="text-right flex flex-col items-end gap-1">
@@ -320,7 +332,7 @@ export function StudentDashboard({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {achievements.slice(0, 3).map((achievement: any) => (
+              {achievements.slice(0, 3).map((achievement: Achievement) => (
                 <div
                   key={achievement.id}
                   className={`flex items-center gap-3 p-2 rounded-lg ${

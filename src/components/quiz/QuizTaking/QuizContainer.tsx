@@ -12,19 +12,30 @@ import StudentFillInBlank from '@/components/shared/question-types/StudentFillIn
 import StudentEssay from '@/components/shared/question-types/StudentEssay';
 import { useRouter } from 'next/navigation';
 
+interface QuestionOption {
+  id: string;
+  text: string;
+  isCorrect?: boolean;
+}
+
 interface Question {
   id: string;
   type: string;
   text: string;
-  options?: any[];
+  options?: QuestionOption[];
   // ...other fields as needed
+}
+
+interface Answer {
+  questionId: string;
+  answer: string | string[];
 }
 
 interface QuizContainerProps {
   quizTitle: string;
   questions: Question[];
   timeLimit?: number; // in minutes
-  onSubmit: (answers: any[], timeTaken: number) => void;
+  onSubmit: (answers: Answer[], timeTaken: number) => void;
 }
 
 export default function QuizContainer({
@@ -34,7 +45,7 @@ export default function QuizContainer({
   onSubmit,
 }: QuizContainerProps) {
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [startTime] = useState(Date.now());
   const [timeLeft, setTimeLeft] = useState(timeLimit ? timeLimit * 60 : null); // seconds
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>(
@@ -68,15 +79,15 @@ export default function QuizContainer({
   }, [answers]);
 
   const handleAnswer = useCallback(
-    (answer: any) => {
+    (answer: string | string[]) => {
       setAnswers((prev) => {
         const updated = [...prev];
-        updated[current] = answer;
+        updated[current] = { questionId: questions[current].id, answer };
         return updated;
       });
       setSaveStatus('saving');
     },
-    [current]
+    [current, questions]
   );
 
   const handleNext = () =>
@@ -101,10 +112,10 @@ export default function QuizContainer({
     // Map backend question to quiz-creation type for student components
     const mappedQ = {
       id: q.id,
-      type: q.type as any,
+      type: q.type,
       question: q.text,
       options: q.options || [],
-    } as any; // Only pass what is needed
+    };
 
     // Map backend enum types to frontend expected types
     const getQuestionType = (backendType: string) => {
@@ -125,45 +136,52 @@ export default function QuizContainer({
     };
 
     const questionType = getQuestionType(q.type);
+    const mappedQuestion = {
+      ...mappedQ,
+      type: questionType,
+    };
+
+    // Get the current answer value
+    const currentAnswer = answers[idx]?.answer || '';
 
     switch (questionType) {
       case 'multiple-choice':
         return (
           <StudentMultipleChoice
-            question={mappedQ}
-            value={answers[idx] || ''}
+            question={mappedQuestion}
+            value={currentAnswer as string}
             onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'true-false':
         return (
           <StudentTrueFalse
-            question={mappedQ}
-            value={answers[idx] || ''}
+            question={mappedQuestion}
+            value={currentAnswer as string}
             onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'short-answer':
         return (
           <StudentShortAnswer
-            question={mappedQ}
-            value={answers[idx] || ''}
+            question={mappedQuestion}
+            value={currentAnswer as string}
             onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'fill-in-blank':
         return (
           <StudentFillInBlank
-            question={mappedQ}
-            value={answers[idx] || ''}
+            question={mappedQuestion}
+            value={currentAnswer as string}
             onChange={(val: string) => handleAnswer(val)}
           />
         );
       case 'essay':
         return (
           <StudentEssay
-            question={mappedQ}
-            value={answers[idx] || ''}
+            question={mappedQuestion}
+            value={currentAnswer as string}
             onChange={(val: string) => handleAnswer(val)}
           />
         );

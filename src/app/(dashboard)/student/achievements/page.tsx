@@ -8,10 +8,8 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
   Dialog,
@@ -19,17 +17,13 @@ import {
   DialogHeader as DialogH,
   DialogTitle as DialogT,
   DialogDescription as DialogD,
-  DialogClose,
 } from '@/components/ui/dialog';
-import { StatsCard } from '@/components/dashboard/stats-card';
-import { ProgressChart } from '@/components/dashboard/progress-chart';
 import {
   Flame,
   Award,
   CheckCircle,
   TrendingUp,
   BookOpen,
-  Lock,
   Star,
   User,
   ArrowUp,
@@ -50,233 +44,57 @@ import {
   Bar,
   AreaChart,
   Area,
-  CartesianGrid,
-  Legend,
 } from 'recharts';
 import { useAuth } from '@/hooks/useAuth';
 import { FullPageSpinner } from '@/components/shared/loading-spinner';
 
-// --- Mock Data ---
-const mockHeader = {
-  studentName: 'Alex Johnson',
-  overallGrade: 'A',
-  totalPoints: 1240,
-  currentRank: 5,
-  totalStudents: 50,
+// Mock data types for TypeScript
+type MockStats = {
+  title: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
 };
 
-const mockStats = [
-  {
-    title: 'Quizzes Completed',
-    value: 18,
-    icon: BookOpen,
-    description: 'Total quizzes finished.',
-  },
-  {
-    title: 'Average Score',
-    value: '78%',
-    icon: TrendingUp,
-    description: 'Across all quizzes.',
-  },
-  {
-    title: 'Perfect Scores',
-    value: 3,
-    icon: Award,
-    description: '100% scores achieved.',
-  },
-  {
-    title: 'Improvement Rate',
-    value: '+12%',
-    icon: TrendingUp,
-    description: 'Compared to last month.',
-  },
-  {
-    title: 'Current Streak',
-    value: 6,
-    icon: Flame,
-    description: 'Days in a row.',
-  },
-  {
-    title: 'Badges Earned',
-    value: 4,
-    icon: Star,
-    description: 'Total badges unlocked.',
-  },
-];
-
-const mockBadges = [
-  {
-    id: 'streak',
-    name: 'Quiz Streak',
-    description: 'Complete quizzes 5 days in a row.',
-    icon: 'flame',
-    category: 'consistency',
-    earnedAt: new Date('2024-06-10'),
-    requirements: 'Take a quiz 5 days in a row.',
-    rarity: 'common',
-  },
-  {
-    id: 'perfect',
-    name: 'Perfect Score',
-    description: 'Score 100% on any quiz.',
-    icon: 'award',
-    category: 'performance',
-    earnedAt: new Date('2024-06-05'),
-    requirements: 'Score 100% on a quiz.',
-    rarity: 'rare',
-  },
-  {
-    id: 'first',
-    name: 'First Quiz',
-    description: 'Complete your first quiz.',
-    icon: 'award',
-    category: 'milestone',
-    earnedAt: new Date('2024-05-01'),
-    requirements: 'Complete your first quiz.',
-    rarity: 'common',
-  },
-  {
-    id: 'enthusiast',
-    name: 'Quiz Enthusiast',
-    description: 'Complete 10 quizzes.',
-    icon: 'trending-up',
-    category: 'milestone',
-    earnedAt: null,
-    requirements: 'Complete 10 quizzes.',
-    rarity: 'epic',
-  },
-  {
-    id: 'mockmaster',
-    name: 'Mock Master',
-    description: 'Complete 3 mock exams.',
-    icon: 'book-open',
-    category: 'milestone',
-    earnedAt: null,
-    requirements: 'Complete 3 mock exams.',
-    rarity: 'rare',
-  },
-  {
-    id: 'longstreak',
-    name: 'Streak Legend',
-    description: 'Complete quizzes 10 days in a row.',
-    icon: 'flame',
-    category: 'consistency',
-    earnedAt: null,
-    requirements: 'Take a quiz 10 days in a row.',
-    rarity: 'epic',
-  },
-];
-
-const mockProgressData = {
-  performanceOverTime: [
-    { date: '2024-05-01', score: 70, subject: 'Math' },
-    { date: '2024-05-08', score: 75, subject: 'Math' },
-    { date: '2024-05-15', score: 80, subject: 'Math' },
-    { date: '2024-05-22', score: 85, subject: 'Math' },
-    { date: '2024-05-29', score: 90, subject: 'Math' },
-    { date: '2024-06-05', score: 100, subject: 'Math' },
-    { date: '2024-06-12', score: 95, subject: 'Math' },
-  ],
-  subjectBreakdown: [
-    { subject: 'Math', averageScore: 85, quizCount: 7 },
-    { subject: 'Biology', averageScore: 90, quizCount: 5 },
-    { subject: 'History', averageScore: 70, quizCount: 3 },
-  ],
-  difficultyProgress: [
-    { difficulty: 'Easy', successRate: 95 },
-    { difficulty: 'Medium', successRate: 80 },
-    { difficulty: 'Hard', successRate: 60 },
-  ],
+type MockProgressData = {
+  performanceOverTime: Array<{ date: string; score: number; subject: string }>;
+  subjectBreakdown: Array<{
+    subject: string;
+    averageScore: number;
+    quizCount: number;
+  }>;
+  difficultyProgress: Array<{ difficulty: string; successRate: number }>;
 };
 
-const mockStreakData = {
-  currentStreak: 6,
-  longestStreak: 8,
-  weeklyActivity: [
-    { date: '2024-06-10', quizzesCompleted: 1, studyTime: 30 },
-    { date: '2024-06-11', quizzesCompleted: 1, studyTime: 25 },
-    { date: '2024-06-12', quizzesCompleted: 1, studyTime: 40 },
-    { date: '2024-06-13', quizzesCompleted: 1, studyTime: 35 },
-    { date: '2024-06-14', quizzesCompleted: 1, studyTime: 20 },
-    { date: '2024-06-15', quizzesCompleted: 1, studyTime: 50 },
-    { date: '2024-06-16', quizzesCompleted: 0, studyTime: 0 },
-  ],
-  monthlyGoal: { target: 20, achieved: 12, percentage: 60 },
+type MockStreakData = {
+  currentStreak: number;
+  longestStreak: number;
+  weeklyActivity: Array<{
+    date: string;
+    quizzesCompleted: number;
+    studyTime: number;
+  }>;
+  monthlyGoal: { target: number; achieved: number; percentage: number };
 };
 
-const mockRecentAchievements = [
-  {
-    id: 'a1',
-    type: 'badge',
-    title: 'Quiz Streak',
-    description: '5-day streak!',
-    earnedAt: new Date('2024-06-10'),
-    points: 50,
-    celebrationLevel: 'normal',
-  },
-  {
-    id: 'a2',
-    type: 'milestone',
-    title: 'First Mock Exam',
-    description: 'Completed your first mock exam.',
-    earnedAt: new Date('2024-06-05'),
-    points: 100,
-    celebrationLevel: 'special',
-  },
-  {
-    id: 'a3',
-    type: 'improvement',
-    title: 'Score Improvement',
-    description: 'Improved your average by 10%.',
-    earnedAt: new Date('2024-06-01'),
-    points: 30,
-    celebrationLevel: 'normal',
-  },
-];
+type MockRecentAchievements = Array<{
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  earnedAt: Date;
+  points: number;
+  celebrationLevel: string;
+}>;
 
-const mockLeaderboard = [
-  {
-    rank: 1,
-    studentName: 'Jane Doe',
-    points: 1500,
-    avatar: '',
-    isCurrentUser: false,
-    trend: 'up',
-  },
-  {
-    rank: 2,
-    studentName: 'Alex Johnson',
-    points: 1240,
-    avatar: '',
-    isCurrentUser: true,
-    trend: 'stable',
-  },
-  {
-    rank: 3,
-    studentName: 'Sam Lee',
-    points: 1200,
-    avatar: '',
-    isCurrentUser: false,
-    trend: 'down',
-  },
-];
-
-const mockGoals = [
-  {
-    id: 'g1',
-    title: 'Complete 20 Quizzes',
-    description: 'Finish 20 quizzes this term.',
-    targetValue: 20,
-    currentValue: 12,
-  },
-  {
-    id: 'g2',
-    title: 'Maintain 7-day Streak',
-    description: 'Take a quiz every day for a week.',
-    targetValue: 7,
-    currentValue: 6,
-  },
-];
+type MockLeaderboard = Array<{
+  rank: number;
+  studentName: string;
+  points: number;
+  avatar: string;
+  isCurrentUser: boolean;
+  trend: string;
+}>;
 
 function AchievementHeader({
   studentName,
@@ -317,29 +135,43 @@ function AchievementHeader({
   );
 }
 
-function AchievementOverviewGrid({ stats }: { stats: typeof mockStats }) {
+function AchievementOverviewGrid({ stats }: { stats: MockStats[] }) {
   console.log(stats);
   return (
     <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {stats.map((s, i) => (
-        <StatsCard
-          key={i}
-          title={s.title}
-          value={s.value}
-          description={s.description}
-          icon={s.icon}
-        />
+      {stats.map((s: MockStats, i: number) => (
+        <Card key={i} className="p-4">
+          <div className="flex items-center space-x-2">
+            <s.icon className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">{s.title}</p>
+              <p className="text-2xl font-bold">{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.description}</p>
+            </div>
+          </div>
+        </Card>
       ))}
     </div>
   );
 }
 
+type Badge = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  earnedAt: Date | null;
+  requirements: string;
+  rarity: string;
+};
+
 function BadgeCollection({
   badges,
   onBadgeClick,
 }: {
-  badges: any[];
-  onBadgeClick: (badge: any) => void;
+  badges: Badge[];
+  onBadgeClick: (badge: Badge) => void;
 }) {
   const rarityColors: Record<string, string> = {
     common: 'border-gray-300',
@@ -410,7 +242,7 @@ function BadgeDetailDialog({
   open,
   onOpenChange,
 }: {
-  badge: any;
+  badge: Badge | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -462,7 +294,7 @@ function BadgeDetailDialog({
   );
 }
 
-function ProgressCharts({ data }: { data: typeof mockProgressData }) {
+function ProgressCharts({ data }: { data: MockProgressData }) {
   return (
     <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
@@ -563,7 +395,7 @@ function ProgressCharts({ data }: { data: typeof mockProgressData }) {
   );
 }
 
-function StreakTracker({ data }: { data: typeof mockStreakData }) {
+function StreakTracker({ data }: { data: MockStreakData }) {
   return (
     <Card className="mb-8 bg-green-50 dark:bg-green-900/10">
       <CardHeader>
@@ -608,7 +440,7 @@ function StreakTracker({ data }: { data: typeof mockStreakData }) {
 function RecentAchievements({
   achievements,
 }: {
-  achievements: typeof mockRecentAchievements;
+  achievements: MockRecentAchievements;
 }) {
   return (
     <Card className="mb-8 bg-yellow-50 dark:bg-yellow-900/10">
@@ -617,7 +449,7 @@ function RecentAchievements({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">
-          {achievements.map((a) => (
+          {achievements.map((a: MockRecentAchievements[0]) => (
             <div
               key={a.id}
               className={`rounded p-3 flex items-center gap-4 bg-muted ${
@@ -649,7 +481,7 @@ function RecentAchievements({
   );
 }
 
-function Leaderboard({ entries }: { entries: typeof mockLeaderboard }) {
+function Leaderboard({ entries }: { entries: MockLeaderboard }) {
   const trendIcon = (trend: string) =>
     trend === 'up' ? (
       <ArrowUp className="w-4 h-4 text-green-500" />
@@ -675,7 +507,7 @@ function Leaderboard({ entries }: { entries: typeof mockLeaderboard }) {
               </tr>
             </thead>
             <tbody>
-              {entries.map((e) => (
+              {entries.map((e: MockLeaderboard[0]) => (
                 <tr
                   key={e.rank}
                   className={e.isCurrentUser ? 'bg-primary/10 font-bold' : ''}
@@ -697,7 +529,17 @@ function Leaderboard({ entries }: { entries: typeof mockLeaderboard }) {
   );
 }
 
-function GoalTracker({ goals }: { goals: any[] }) {
+function GoalTracker({
+  goals,
+}: {
+  goals: Array<{
+    id: string;
+    title: string;
+    description: string;
+    targetValue: number;
+    currentValue: number;
+  }>;
+}) {
   if (!goals || goals.length === 0) {
     return null;
   }
@@ -736,19 +578,45 @@ function GoalTracker({ goals }: { goals: any[] }) {
   );
 }
 
+type HeaderData = {
+  studentName: string;
+  overallGrade: string;
+  totalPoints: number;
+  currentRank: number;
+  totalStudents: number;
+};
+
+type CompletedQuiz = {
+  id: string;
+  title: string;
+  score: number;
+  rank: number;
+  totalTakers: number;
+};
+
+type Goal = {
+  id: string;
+  title: string;
+  description: string;
+  targetValue: number;
+  currentValue: number;
+};
+
 export default function StudentAchievementsPage() {
   const { user, loading } = useAuth();
-  const [header, setHeader] = useState<any>(null);
-  const [stats, setStats] = useState<any[] | null>(null);
-  const [badges, setBadges] = useState<any[]>([]);
-  const [achievements, setAchievements] = useState<any[]>([]);
-  const [progressData, setProgressData] = useState<any>(null);
-  const [streakData, setStreakData] = useState<any>(null);
-  const [selectedBadge, setSelectedBadge] = useState<any>(null);
+  const [header, setHeader] = useState<HeaderData | null>(null);
+  const [stats, setStats] = useState<MockStats[] | null>(null);
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [achievements, setAchievements] = useState<MockRecentAchievements>([]);
+  const [progressData, setProgressData] = useState<MockProgressData | null>(
+    null
+  );
+  const [streakData, setStreakData] = useState<MockStreakData | null>(null);
+  const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [badgeDialogOpen, setBadgeDialogOpen] = useState(false);
-  const [completedQuizzes, setCompletedQuizzes] = useState<any[]>([]);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [goals, setGoals] = useState<any[]>([]);
+  const [completedQuizzes, setCompletedQuizzes] = useState<CompletedQuiz[]>([]);
+  const [leaderboard, setLeaderboard] = useState<MockLeaderboard>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   // TODO: Add celebratory animation/modal for new achievements
   // TODO: Add social sharing for achievements
 
@@ -775,8 +643,9 @@ export default function StudentAchievementsPage() {
           {
             title: 'Perfect Scores',
             value:
-              data.completedQuizzes?.filter((q: any) => q.score === 100)
-                .length || 0,
+              data.completedQuizzes?.filter(
+                (q: CompletedQuiz) => q.score === 100
+              ).length || 0,
             icon: Award,
             description: '100% scores achieved.',
           },
@@ -827,7 +696,7 @@ export default function StudentAchievementsPage() {
       .then((achvData) => {
         setAchievements(achvData.achievements || []);
         setBadges(achvData.badges || []);
-        setStats((prevStats: any[] | null) =>
+        setStats((prevStats: MockStats[] | null) =>
           prevStats
             ? prevStats.map((s) =>
                 s.title === 'Badges Earned'
@@ -886,7 +755,17 @@ export default function StudentAchievementsPage() {
   );
 }
 
-function QuizRankList({ completedQuizzes }: { completedQuizzes: any[] }) {
+function QuizRankList({
+  completedQuizzes,
+}: {
+  completedQuizzes: Array<{
+    id: string;
+    title: string;
+    score: number;
+    rank: number;
+    totalTakers: number;
+  }>;
+}) {
   if (!completedQuizzes || completedQuizzes.length === 0) {
     return null;
   }

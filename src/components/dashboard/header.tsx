@@ -21,8 +21,44 @@ import { useEffect, useState } from 'react';
 interface HeaderProps {
   user: User;
   onSidebarToggle?: () => void;
-  className?: string;
   pageTitle?: string;
+}
+
+interface SearchResult {
+  nav?: Array<{
+    route: string;
+    label: string;
+    description: string;
+  }>;
+  quizzes?: Array<{
+    id: string;
+    title: string;
+    subject?: {
+      name: string;
+    };
+  }>;
+  attempts?: Array<{
+    id: string;
+    quiz: {
+      title: string;
+    };
+    score: number;
+  }>;
+  achievements?: Array<{
+    id: string;
+    title: string;
+    description: string;
+  }>;
+  badges?: Array<{
+    id: string;
+    title: string;
+    description: string;
+  }>;
+  subjects?: Array<{
+    id: string;
+    name: string;
+    description: string;
+  }>;
 }
 
 // Navigation items mapping
@@ -41,19 +77,14 @@ const teacherNavItems = [
   { title: 'Students', href: '/teacher/students' },
 ];
 
-export function Header({
-  user,
-  onSidebarToggle,
-  className,
-  pageTitle,
-}: HeaderProps) {
+export function Header({ user, onSidebarToggle, pageTitle }: HeaderProps) {
   const { logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const navItems = user.role === 'student' ? studentNavItems : teacherNavItems;
 
   const [search, setSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<any>({});
+  const [searchResults, setSearchResults] = useState<SearchResult>({});
   const [searchLoading, setSearchLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -99,7 +130,7 @@ export function Header({
   const handleStudentLogOut = React.useCallback(() => {
     logout();
     router.push('/login');
-  }, [router]);
+  }, [router, logout]);
 
   const resolvedTitle = pageTitle || currentNavItem?.title || 'QuizMentor';
 
@@ -131,7 +162,9 @@ export function Header({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onFocus={() =>
-                  searchResults.length > 0 && setShowDropdown(true)
+                  Object.values(searchResults).some(
+                    (arr) => Array.isArray(arr) && arr.length > 0
+                  ) && setShowDropdown(true)
                 }
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
               />
@@ -144,7 +177,8 @@ export function Header({
                     </div>
                   ) : !searchResults ||
                     Object.values(searchResults).every(
-                      (arr: any) => !arr || arr.length === 0
+                      (arr: unknown) =>
+                        !arr || (Array.isArray(arr) && arr.length === 0)
                     ) ? (
                     <div className="p-3 text-sm text-muted-foreground">
                       No results found.
@@ -156,7 +190,7 @@ export function Header({
                           <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                             Navigation
                           </div>
-                          {searchResults.nav.map((nav: any) => (
+                          {searchResults.nav.map((nav) => (
                             <div
                               key={nav.route}
                               className="p-3 hover:bg-muted cursor-pointer text-sm"
@@ -176,7 +210,7 @@ export function Header({
                             <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                               Quizzes
                             </div>
-                            {searchResults.quizzes.map((quiz: any) => (
+                            {searchResults.quizzes.map((quiz) => (
                               <div
                                 key={quiz.id}
                                 className="p-3 hover:bg-muted cursor-pointer text-sm"
@@ -198,7 +232,7 @@ export function Header({
                             <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                               Attempts
                             </div>
-                            {searchResults.attempts.map((attempt: any) => (
+                            {searchResults.attempts.map((attempt) => (
                               <div
                                 key={attempt.id}
                                 className="p-3 hover:bg-muted cursor-pointer text-sm"
@@ -222,7 +256,7 @@ export function Header({
                             <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                               Achievements
                             </div>
-                            {searchResults.achievements.map((a: any) => (
+                            {searchResults.achievements.map((a) => (
                               <div
                                 key={a.id}
                                 className="p-3 text-sm"

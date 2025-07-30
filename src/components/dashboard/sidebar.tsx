@@ -10,7 +10,6 @@ import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import {
   BookOpen,
   BarChart3,
-  Calendar,
   Home,
   Settings,
   Trophy,
@@ -19,10 +18,8 @@ import {
   Plus,
   List,
   TrendingUp,
-  Award,
   Upload,
   Sparkles,
-  MessageCircle,
   Bot,
 } from 'lucide-react';
 

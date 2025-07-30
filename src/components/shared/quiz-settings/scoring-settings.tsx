@@ -1,7 +1,6 @@
 'use client';
 
-import { Award, Eye, RefreshCw, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Award, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -98,7 +97,7 @@ export default function ScoringSettings({
               Allow retakes
             </Label>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Students can retake the quiz if they don't pass
+              Students can retake the quiz if they don&apos;t pass
             </p>
           </div>
           <Switch
@@ -139,8 +138,8 @@ export default function ScoringSettings({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Students will see their score immediately but won't be able to
-              retake the quiz. Consider allowing retakes for better learning
+              Students will see their score immediately but won&apos;t be able
+              to retake the quiz. Consider allowing retakes for better learning
               outcomes.
             </AlertDescription>
           </Alert>

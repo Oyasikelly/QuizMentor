@@ -5,13 +5,7 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Flame,
   Award,
@@ -24,114 +18,32 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { FullPageSpinner } from '@/components/shared/loading-spinner';
 
-const mockStats = {
-  quizzesTaken: 18,
-  averageScore: 78,
-  bestScore: 100,
-  streak: 6,
-  timeSpent: 540, // minutes
-  badges: 4,
+type MockStats = {
+  quizzesTaken: number;
+  averageScore: number;
+  bestScore: number;
+  streak: number;
+  timeSpent: number;
+  badges: number;
 };
 
-const mockPerformance = [
-  { date: '2024-05-01', score: 70 },
-  { date: '2024-05-08', score: 75 },
-  { date: '2024-05-15', score: 80 },
-  { date: '2024-05-22', score: 85 },
-  { date: '2024-05-29', score: 90 },
-  { date: '2024-06-05', score: 100 },
-  { date: '2024-06-12', score: 95 },
-];
+type MockPerformance = Array<{ date: string; score: number }>;
 
-const mockQuizHistory = [
-  {
-    id: 'q1',
-    title: 'Algebra Basics',
-    date: '2024-06-12',
-    score: 95,
-    type: 'Assignment',
-  },
-  {
-    id: 'q2',
-    title: 'JAMB Mock Exam',
-    date: '2024-06-05',
-    score: 100,
-    type: 'Mock Exam',
-  },
-  {
-    id: 'q3',
-    title: 'Photosynthesis',
-    date: '2024-05-29',
-    score: 90,
-    type: 'Assignment',
-  },
-  {
-    id: 'q4',
-    title: 'World War II',
-    date: '2024-05-22',
-    score: 85,
-    type: 'Practice',
-  },
-  {
-    id: 'q5',
-    title: 'English Literature',
-    date: '2024-05-15',
-    score: 80,
-    type: 'Assignment',
-  },
-];
+type MockQuizHistory = Array<{
+  id: string;
+  title: string;
+  date: string;
+  score: number;
+  type: string;
+}>;
 
-const mockTopicMastery = [
-  { subject: 'Mathematics', percent: 80 },
-  { subject: 'Biology', percent: 90 },
-  { subject: 'History', percent: 60 },
-  { subject: 'Literature', percent: 70 },
-];
-
-const mockAchievements = [
-  {
-    id: 'streak',
-    name: 'Quiz Streak',
-    icon: <Flame className="w-4 h-4 text-orange-500" />,
-    label: '6-day streak!',
-  },
-  {
-    id: 'perfect',
-    name: 'Perfect Score',
-    icon: <Award className="w-4 h-4 text-yellow-500" />,
-    label: 'Perfect Score!',
-  },
-  {
-    id: 'first',
-    name: 'First Quiz',
-    icon: <CheckCircle className="w-4 h-4 text-green-500" />,
-    label: 'First Quiz Completed',
-  },
-  {
-    id: 'progress',
-    name: 'On the Rise',
-    icon: <TrendingUp className="w-4 h-4 text-blue-500" />,
-    label: 'Improved 5 weeks in a row',
-  },
-];
-
-const mockRecommendations = [
-  { id: 'r1', text: 'Practice more on Algebra to boost your score.' },
-  { id: 'r2', text: 'Retake Biology quiz for a higher score.' },
-  { id: 'r3', text: 'Try the next JAMB Mock Exam for exam readiness.' },
-];
-
-const mockPeerComparison = {
-  percentile: 80,
-  classAverage: 72,
-  yourAverage: 78,
-};
+type MockTopicMastery = Array<{ subject: string; percent: number }>;
 
 function StudentProgressOverview({
   stats,
   onViewAchievements,
 }: {
-  stats: typeof mockStats;
+  stats: MockStats;
   onViewAchievements: () => void;
 }) {
   console.log(stats);
@@ -184,7 +96,7 @@ function StudentProgressOverview({
   );
 }
 
-function PerformanceChart({ data }: { data: typeof mockPerformance }) {
+function PerformanceChart({ data }: { data: MockPerformance }) {
   // Simple SVG line chart mock
   const maxScore = 100;
   const width = 320;
@@ -230,7 +142,7 @@ function PerformanceChart({ data }: { data: typeof mockPerformance }) {
   );
 }
 
-function QuizHistoryTable({ history }: { history: typeof mockQuizHistory }) {
+function QuizHistoryTable({ history }: { history: MockQuizHistory }) {
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-2">Quiz History</h2>
@@ -266,7 +178,7 @@ function QuizHistoryTable({ history }: { history: typeof mockQuizHistory }) {
   );
 }
 
-function TopicMasteryBars({ mastery }: { mastery: typeof mockTopicMastery }) {
+function TopicMasteryBars({ mastery }: { mastery: MockTopicMastery }) {
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold mb-2">Subject Mastery</h2>
@@ -285,7 +197,24 @@ function TopicMasteryBars({ mastery }: { mastery: typeof mockTopicMastery }) {
   );
 }
 
-function AchievementsGallery({ achievements }: { achievements: any[] }) {
+type Achievement = {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  earnedAt?: Date;
+  points: number;
+  celebrationLevel: string;
+  icon: React.ReactNode;
+  name: string;
+  label: string;
+};
+
+function AchievementsGallery({
+  achievements,
+}: {
+  achievements: Achievement[];
+}) {
   // Debug log
   console.log('AchievementsGallery:', achievements);
 
@@ -321,6 +250,17 @@ function AchievementsGallery({ achievements }: { achievements: any[] }) {
   );
 }
 
+type Badge = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  earnedAt: Date | null;
+  requirements: string;
+  rarity: string;
+};
+
 function AchievementsModal({
   open,
   onClose,
@@ -329,8 +269,8 @@ function AchievementsModal({
 }: {
   open: boolean;
   onClose: () => void;
-  achievements: any[];
-  badges: any[];
+  achievements: Achievement[];
+  badges: Badge[];
 }) {
   if (!open) return null;
 
@@ -499,10 +439,16 @@ function PersonalizedRecommendations({
   );
 }
 
+type PeerComparison = {
+  percentile: number;
+  classAverage: number;
+  yourAverage: number;
+};
+
 function PeerComparisonPanel({
   comparison,
 }: {
-  comparison: typeof mockPeerComparison | null;
+  comparison: PeerComparison | null;
 }) {
   if (!comparison) {
     return (
@@ -552,14 +498,18 @@ function PeerComparisonPanel({
 
 export default function StudentProgressPage() {
   const { user, loading } = useAuth();
-  const [stats, setStats] = useState<any>(null);
-  const [performance, setPerformance] = useState<any[]>([]);
-  const [quizHistory, setQuizHistory] = useState<any[]>([]);
-  const [topicMastery, setTopicMastery] = useState<any[]>([]);
-  const [achievements, setAchievements] = useState<any[]>([]); // TODO: Fetch from /api/achievements
-  const [badges, setBadges] = useState<any[]>([]); // Store badges from API
-  const [recommendations, setRecommendations] = useState<any[]>([]); // TODO: Fetch from /api/recommendations
-  const [peerComparison, setPeerComparison] = useState<any>(null); // TODO: Fetch from /api/peer-comparison
+  const [stats, setStats] = useState<MockStats | null>(null);
+  const [performance, setPerformance] = useState<MockPerformance>([]);
+  const [quizHistory, setQuizHistory] = useState<MockQuizHistory>([]);
+  const [topicMastery, setTopicMastery] = useState<MockTopicMastery>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]); // TODO: Fetch from /api/achievements
+  const [badges, setBadges] = useState<Badge[]>([]); // Store badges from API
+  const [recommendations, setRecommendations] = useState<
+    { id: string; text: string }[]
+  >([]); // TODO: Fetch from /api/recommendations
+  const [peerComparison, setPeerComparison] = useState<PeerComparison | null>(
+    null
+  ); // TODO: Fetch from /api/peer-comparison
   const [achievementsOpen, setAchievementsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -575,29 +525,43 @@ export default function StudentProgressPage() {
           quizzesTaken: data.totalAttempts,
           averageScore: Math.round(data.averageScore),
           bestScore: data.completedQuizzes?.length
-            ? Math.max(...data.completedQuizzes.map((q: any) => q.score || 0))
+            ? Math.max(
+                ...data.completedQuizzes.map(
+                  (q: { score: number }) => q.score || 0
+                )
+              )
             : 0,
           streak: data.studyStreak,
           timeSpent: 0, // TODO: Add timeSpent if available from backend
           badges: 0, // TODO: Add badges if available from backend
         });
         setPerformance(
-          data.completedQuizzes?.map((q: any) => ({
-            date: q.completedAt?.slice(0, 10),
-            score: q.score,
-          })) || []
+          data.completedQuizzes?.map(
+            (q: { completedAt: string; score: number }) => ({
+              date: q.completedAt?.slice(0, 10),
+              score: q.score,
+            })
+          ) || []
         );
         setQuizHistory(
-          data.completedQuizzes?.map((q: any) => ({
-            id: q.id,
-            title: q.title,
-            date: q.completedAt?.slice(0, 10),
-            score: q.score,
-            type: q.subject?.name || 'Assignment',
-          })) || []
+          data.completedQuizzes?.map(
+            (q: {
+              id: string;
+              title: string;
+              completedAt: string;
+              score: number;
+              subject?: { name: string };
+            }) => ({
+              id: q.id,
+              title: q.title,
+              date: q.completedAt?.slice(0, 10),
+              score: q.score,
+              type: q.subject?.name || 'Assignment',
+            })
+          ) || []
         );
         setTopicMastery(
-          data.subjectsStudied?.map((s: any) => ({
+          data.subjectsStudied?.map((s: { name: string }) => ({
             subject: s.name,
             percent: Math.floor(Math.random() * 41) + 60, // 60-100% random for now
           })) || []
@@ -609,10 +573,14 @@ export default function StudentProgressPage() {
             setAchievements(achvData.achievements || []);
             setBadges(achvData.badges || []); // Store badges
             // Update stats with real badges count
-            setStats((prevStats: any) => ({
-              ...prevStats,
-              badges: achvData.badges?.length || 0,
-            }));
+            setStats((prevStats: MockStats | null) =>
+              prevStats
+                ? {
+                    ...prevStats,
+                    badges: achvData.badges?.length || 0,
+                  }
+                : null
+            );
             // Fetch peer comparison
             fetch(`/api/student/peer-comparison?studentId=${user.id}`)
               .then((res) => res.json())
@@ -640,7 +608,7 @@ export default function StudentProgressPage() {
             setIsLoading(false);
           });
       })
-      .catch((err) => {
+      .catch(() => {
         setError('Failed to load progress data.');
         setIsLoading(false);
       });
@@ -655,10 +623,12 @@ export default function StudentProgressPage() {
   return (
     <DashboardLayout pageTitle="Progress">
       <div className="space-y-6 mx-auto">
-        <StudentProgressOverview
-          stats={stats}
-          onViewAchievements={() => setAchievementsOpen(true)}
-        />
+        {stats && (
+          <StudentProgressOverview
+            stats={stats}
+            onViewAchievements={() => setAchievementsOpen(true)}
+          />
+        )}
         <PerformanceChart data={performance} />
         <QuizHistoryTable history={quizHistory} />
         <TopicMasteryBars mastery={topicMastery} />

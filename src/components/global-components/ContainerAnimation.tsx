@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
 import {
   FaBook,
   FaRegStickyNote,
@@ -91,10 +90,8 @@ interface ContainerAnimationProps {
   speed?: 'slow' | 'medium' | 'fast';
   interactive?: boolean;
   autoPlay?: boolean;
-  loop?: boolean;
   showLabels?: boolean;
   size?: 'small' | 'medium' | 'large';
-  theme?: 'light' | 'dark' | 'auto';
 }
 
 const sizeStyles = {
@@ -139,21 +136,18 @@ const ContainerAnimation: React.FC<ContainerAnimationProps> = ({
   speed = 'medium',
   interactive = true,
   autoPlay = true,
-  loop = true,
   showLabels = true,
   size = 'medium',
-  theme = 'auto',
 }) => {
   const [inputCycle, setInputCycle] = useState(0);
   const [outputCycle, setOutputCycle] = useState(0);
   const [processingCycle, setProcessingCycle] = useState(0);
   const [wave, setWave] = useState(0); // for converge/diverge
-  const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [hoveredOrbit, setHoveredOrbit] = useState<number | null>(null); // index of hovered orbit icon
 
   // Timings: input changes, then after half the interval output changes
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!autoPlay) return;
     const inputInterval = setInterval(() => {
       setInputCycle((c) => (c + 1) % inputIcons.length);
       setProcessingCycle((c) => (c + 1) % processingIcons.length);
@@ -170,7 +164,7 @@ const ContainerAnimation: React.FC<ContainerAnimationProps> = ({
       clearInterval(outputInterval);
       clearInterval(waveInterval);
     };
-  }, [isPlaying, speed]);
+  }, [autoPlay, speed]);
 
   // Icon selection for this cycle
   const InputIcon = inputIcons[inputCycle % inputIcons.length];

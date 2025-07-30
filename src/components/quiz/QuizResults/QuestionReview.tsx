@@ -1,24 +1,25 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, XCircle, Info } from 'lucide-react';
-import MultipleChoice from '@/components/shared/question-types/multiple-choice';
-import TrueFalse from '@/components/shared/question-types/true-false';
-import ShortAnswer from '@/components/shared/question-types/short-answer';
-import FillInBlank from '@/components/shared/question-types/fill-in-blank';
-import Essay from '@/components/shared/question-types/essay';
+
+interface QuestionOption {
+  id: string;
+  text: string;
+  isCorrect?: boolean;
+}
 
 interface Question {
   id: string;
   type: string;
   text: string;
-  options?: any[];
+  options?: QuestionOption[];
   explanation?: string;
-  correctAnswer?: any;
+  correctAnswer?: string | string[];
 }
 
 interface Response {
   questionId: string;
-  answer: any;
+  answer: string | string[];
   isCorrect?: boolean;
   pointsEarned?: number;
   feedback?: string;
@@ -109,14 +110,14 @@ export default function QuestionReview({
   );
 }
 
-function renderAnswer(q: Question, answer: any) {
+function renderAnswer(q: Question, answer: string | string[]) {
   switch (q.type) {
     case 'multiple-choice':
       return Array.isArray(answer)
         ? answer
-            .map((a: any) => q.options?.find((o) => o.value === a)?.text || a)
+            .map((a: string) => q.options?.find((o) => o.id === a)?.text || a)
             .join(', ')
-        : q.options?.find((o) => o.value === answer)?.text || answer;
+        : q.options?.find((o) => o.id === answer)?.text || answer;
     case 'true-false':
       return answer === true ? 'True' : answer === false ? 'False' : '';
     case 'short-answer':

@@ -16,12 +16,8 @@ import {
 import {
   BookOpen,
   Timer,
-  CheckCircle,
   PlayCircle,
-  Search,
   FileText,
-  Flame,
-  Award,
   Users,
   MessageCircle,
 } from 'lucide-react';
@@ -40,63 +36,32 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
-const mockAchievements = [
-  {
-    id: 'streak',
-    name: 'Quiz Streak',
-    icon: <Flame className="w-4 h-4 text-orange-500" />,
-    value: 5,
-    label: '5-day streak!',
-  },
-  {
-    id: 'perfect',
-    name: 'Perfect Score',
-    icon: <Award className="w-4 h-4 text-yellow-500" />,
-    value: 1,
-    label: 'Perfect Score!',
-  },
-  {
-    id: 'first',
-    name: 'First Quiz',
-    icon: <CheckCircle className="w-4 h-4 text-green-500" />,
-    value: 1,
-    label: 'First Quiz Completed',
-  },
-];
+type MockAchievement = {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+};
 
-const mockRecommendations = [
-  {
-    id: 'r1',
-    title: 'Practice More on Algebra',
-    reason: 'Based on your recent scores',
-    quizId: 'q1',
-  },
-  {
-    id: 'r2',
-    title: 'Try the JAMB Mock Exam',
-    reason: 'Mock exam available this week',
-    quizId: 'q2',
-  },
-];
+type MockRecommendation = {
+  id: string;
+  title: string;
+  reason: string;
+  quizId: string;
+};
 
-const mockTopicMastery = [
-  { subject: 'Mathematics', percent: 60 },
-  { subject: 'Biology', percent: 80 },
-  { subject: 'History', percent: 40 },
-];
+type MockTopicMastery = Array<{ subject: string; percent: number }>;
 
 function StudentQuizProgressSummary({
   quizzes,
   achievements,
 }: {
   quizzes: Quiz[];
-  achievements: typeof mockAchievements;
+  achievements: MockAchievement[];
 }) {
   const inProgress = quizzes.filter((q) => q.isPublished).length;
-  const completed = 0; // No completed status in Quiz model
   const notStarted = quizzes.filter((q) => !q.isPublished).length;
-  // No mockAvailable logic for real quizzes
-  const mockAvailable = 0;
   const lastQuiz =
     quizzes.find((q) => q.isPublished) || quizzes.find((q) => !q.isPublished);
   return (
@@ -152,7 +117,7 @@ function RecommendedForYou({
   recommendations,
   onDetails,
 }: {
-  recommendations: typeof mockRecommendations;
+  recommendations: MockRecommendation[];
   onDetails: (quizId: string) => void;
 }) {
   if (!recommendations.length) return null;
@@ -183,7 +148,7 @@ function RecommendedForYou({
   );
 }
 
-function TopicMasteryBar({ mastery }: { mastery: typeof mockTopicMastery }) {
+function TopicMasteryBar({ mastery }: { mastery: MockTopicMastery }) {
   if (!mastery.length) return null;
   return (
     <div className="mb-6">
@@ -203,7 +168,14 @@ function TopicMasteryBar({ mastery }: { mastery: typeof mockTopicMastery }) {
   );
 }
 
-function QuizFiltersBar({ search, setSearch, filter, setFilter }: any) {
+type QuizFiltersProps = {
+  search: string;
+  setSearch: (search: string) => void;
+  filter: string;
+  setFilter: (filter: string) => void;
+};
+
+function QuizFiltersBar({ search, setSearch, filter, setFilter }: QuizFiltersProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
       <div className="flex-1 flex items-center gap-2">
@@ -274,7 +246,7 @@ function StudentQuizCard({
 }: {
   quiz: Quiz;
   onDetails: (quiz: Quiz) => void;
-  quizAttempts: Record<string, any>;
+  quizAttempts: Record<string, { score: number; totalPoints: number }>;
   setReviewQuizId: (id: string) => void;
   setReviewOpen: (open: boolean) => void;
 }) {
@@ -349,7 +321,7 @@ function StudentQuizList({
 }: {
   quizzes: Quiz[];
   onDetails: (quiz: Quiz) => void;
-  quizAttempts: Record<string, any>;
+  quizAttempts: Record<string, { score: number; totalPoints: number }>;
   setReviewQuizId: (id: string) => void;
   setReviewOpen: (open: boolean) => void;
 }) {
@@ -381,7 +353,7 @@ function QuizDetailsDrawer({
   onClose,
   onReview,
 }: {
-  quiz: any;
+  quiz: Quiz;
   open: boolean;
   onClose: () => void;
   onReview: () => void;
@@ -389,7 +361,7 @@ function QuizDetailsDrawer({
   const router = useRouter();
   const { setQuiz } = useQuizContext();
   // Fetch questions for the selected quiz
-  const { questions, loading, error } = useQuizQuestions(quiz?.id || null);
+  const { questions } = useQuizQuestions(quiz?.id || null);
   if (!quiz) return null;
   const handleStartQuiz = () => {
     setQuiz({ ...quiz, questions });
@@ -467,8 +439,24 @@ function ReviewModalDrawer({
   studentId: string;
 }) {
   const [loading, setLoading] = useState(false);
-  const [review, setReview] = useState<any[]>([]);
-  const [attempt, setAttempt] = useState<any>(null);
+type ReviewItem = {
+  questionId: string;
+  question: string;
+  userAnswer: string;
+  correctAnswer: string;
+  options?: string[];
+  pointsEarned: number;
+  isCorrect: boolean;
+};
+
+type Attempt = {
+  score: number;
+  totalPoints: number;
+  completedAt: string;
+};
+
+const [review, setReview] = useState<ReviewItem[]>([]);
+const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -556,14 +544,14 @@ export default function StudentQuizzesPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [subjectId, setSubjectId] = useState('');
-  const [detailsQuiz, setDetailsQuiz] = useState<any>(null);
+  const [detailsQuiz, setDetailsQuiz] = useState<Quiz | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([]);
   const [subjectsLoading, setSubjectsLoading] = useState(true);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewQuizId, setReviewQuizId] = useState<string | null>(null);
-  const [quizAttempts, setQuizAttempts] = useState<Record<string, any>>({});
-  const [topicMastery, setTopicMastery] = useState<any[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<Record<string, { score: number; totalPoints: number }>>({});
+  const [topicMastery, setTopicMastery] = useState<MockTopicMastery>([]);
 
   // Memoize the filters object to prevent infinite re-renders
   const filters = useMemo(
@@ -603,7 +591,7 @@ export default function StudentQuizzesPage() {
   useEffect(() => {
     async function fetchAttempts() {
       if (!user?.id || !quizzes.length) return;
-      const results: Record<string, any> = {};
+      const results: Record<string, { score: number; totalPoints: number }> = {};
       await Promise.all(
         quizzes.map(async (quiz) => {
           try {
@@ -629,7 +617,7 @@ export default function StudentQuizzesPage() {
         .then((res) => res.json())
         .then((data) => {
           setTopicMastery(
-            data.subjectsStudied?.map((s: any) => ({
+            data.subjectsStudied?.map((s: { name: string }) => ({
               subject: s.name,
               percent: Math.floor(Math.random() * 41) + 60,
             })) || []
@@ -637,7 +625,7 @@ export default function StudentQuizzesPage() {
         });
     }
     fetchSubjectMastery();
-  }, [user?.id, quizzes]);
+  }, [user]);
 
   // After fetching quizzes, map them to add type and completed for demo/testing
   const quizzesWithType = quizzes.map((q) => ({
@@ -669,7 +657,7 @@ export default function StudentQuizzesPage() {
   });
 
   // Handler for recommendations and quiz cards
-  const handleDetails = (quizOrId: any) => {
+  const handleDetails = (quizOrId: Quiz | string) => {
     const quiz =
       typeof quizOrId === 'string'
         ? quizzes.find((q) => q.id === quizOrId)
@@ -723,20 +711,22 @@ export default function StudentQuizzesPage() {
           setReviewQuizId={setReviewQuizId}
           setReviewOpen={setReviewOpen}
         />
-        <QuizDetailsDrawer
-          quiz={detailsQuiz}
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          onReview={() => {
-            setReviewQuizId(detailsQuiz?.id);
-            setReviewOpen(true);
-          }}
-        />
+        {detailsQuiz && (
+          <QuizDetailsDrawer
+            quiz={detailsQuiz}
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            onReview={() => {
+              setReviewQuizId(detailsQuiz.id);
+              setReviewOpen(true);
+            }}
+          />
+        )}
         <ReviewModalDrawer
           open={reviewOpen}
           onClose={() => setReviewOpen(false)}
           quizId={reviewQuizId || ''}
-          studentId={user.id}
+          studentId={user?.id || ''}
         />
       </div>
     </DashboardLayout>

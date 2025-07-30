@@ -7,7 +7,7 @@ import QuizStart from '@/components/quiz/QuizStart';
 import QuizContainer from '@/components/quiz/QuizTaking/QuizContainer';
 
 export default function QuizClient({ id }: { id: string }) {
-  const { quiz: contextQuiz, setQuiz } = useQuizContext();
+  const { quiz: contextQuiz } = useQuizContext();
   const { quiz, loading, error } = useQuiz(id);
   const [started, setStarted] = useState(false);
   const [attemptId, setAttemptId] = useState<string | null>(null);
@@ -54,13 +54,16 @@ export default function QuizClient({ id }: { id: string }) {
       } else {
         alert(data.error || 'Failed to start quiz attempt.');
       }
-    } catch (err) {
+    } catch {
       alert('Failed to start quiz attempt.');
     }
   };
 
   // On submit, call the backend to grade and save answers
-  const handleSubmit = async (answers: any[], timeTaken: number) => {
+  const handleSubmit = async (
+    answers: Array<{ questionId: string; answer: string }>,
+    timeTaken: number
+  ) => {
     if (!attemptId) {
       alert('No attempt in progress.');
       return;
@@ -80,7 +83,7 @@ export default function QuizClient({ id }: { id: string }) {
         alert(data.error || 'Failed to submit quiz.');
       }
       // Success: dashboard and review modal will update automatically
-    } catch (err) {
+    } catch {
       alert('Failed to submit quiz.');
     }
   };

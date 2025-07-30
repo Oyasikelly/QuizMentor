@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,8 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ModeToggle } from '@/components/toggle-switch';
 import {
@@ -26,33 +24,17 @@ import {
   EyeOff,
   Loader2,
   Shield,
-  CheckCircle,
-  AlertCircle,
   BarChart3,
+  CheckCircle,
 } from 'lucide-react';
 import { loginUser } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-
-// Add types for organization, unit, and subject
-interface Organization {
-  id: string;
-  name: string;
-}
-interface Unit {
-  id: string;
-  name: string;
-  organizationId: string;
-}
-interface Subject {
-  id: string;
-  name: string;
-  unitId?: string;
-}
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
-  const router = useRouter();
   const { user, setUser, checkAndRedirect } = useAuth();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'student' | 'teacher'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -60,6 +42,14 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+
+  // Check for email verification message from registration
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message) {
+      toast.success(message);
+    }
+  }, [searchParams]);
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -102,6 +92,7 @@ export default function LoginPage() {
       const response = await loginUser({
         email: formData.email,
         password: formData.password,
+        role: activeTab, // Send the selected role
       });
 
       setUser(response.user);
@@ -109,9 +100,11 @@ export default function LoginPage() {
 
       // Use the new profile completion check
       checkAndRedirect(response.user);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage =
-        err.message || 'Invalid email or password. Please try again.';
+        err instanceof Error
+          ? err.message
+          : 'Invalid email or password. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -142,7 +135,7 @@ export default function LoginPage() {
       setUser(demoUser);
       toast.success(`Welcome to the ${role} demo!`);
       checkAndRedirect(demoUser);
-    } catch (err) {
+    } catch {
       toast.error('Demo login failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -317,7 +310,7 @@ export default function LoginPage() {
 
                 {/* Sign Up Link */}
                 <div className="text-center text-sm">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link
                     href="/register"
                     className="font-medium text-primary hover:underline"

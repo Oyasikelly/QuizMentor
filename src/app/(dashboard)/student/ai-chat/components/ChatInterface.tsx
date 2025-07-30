@@ -1,6 +1,5 @@
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Bot, User } from 'lucide-react';
 import { ChatInputBar } from './ChatInputBar';
 

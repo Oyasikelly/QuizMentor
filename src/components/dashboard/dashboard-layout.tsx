@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Header } from '@/components/dashboard/header';
-import { User } from '@/types/auth';
 import { useAuth } from '@/hooks/useAuth';
 
 interface DashboardLayoutProps {

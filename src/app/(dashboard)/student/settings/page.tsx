@@ -13,21 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { useForm } from 'react-hook-form';
-import { User } from '@/types/auth';
+
 import { useAuth } from '@/hooks/useAuth';
 import { FullPageSpinner } from '@/components/shared/loading-spinner';
 import { toast } from 'react-hot-toast';
 import jsPDF from 'jspdf';
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table,
-  TableRow,
-  TableCell,
-} from 'docx';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell } from 'docx';
 import {
   Dialog,
   DialogTrigger,
@@ -38,24 +29,6 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-
-type StudentSettingsForm = {
-  name: string;
-  email: string;
-  school: string;
-  department: string;
-  year: string;
-  regNo: string;
-};
-
-const defaultValues: StudentSettingsForm = {
-  name: 'Alex Johnson',
-  email: 'alex.johnson@example.com',
-  school: 'FUPRE',
-  department: 'Computer Science',
-  year: '3',
-  regNo: 'FUPRE/CS/2022/001',
-};
 
 // Cloudinary upload helper
 async function uploadToCloudinary(file: File): Promise<string | null> {
@@ -71,13 +44,14 @@ async function uploadToCloudinary(file: File): Promise<string | null> {
 
 function AccountSecuritySection() {
   const { user } = useAuth();
-  if (!user) return null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
+
+  if (!user) return null;
 
   async function handlePasswordChange(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -231,13 +205,12 @@ function AccountSecuritySection() {
 
 function NotificationPreferences() {
   const { user } = useAuth();
-  if (!user) return null;
+  const [loading, setLoading] = useState(true);
   const [prefs, setPrefs] = useState({
     emailQuizzes: true,
     emailResults: true,
     inappAchievements: true,
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
@@ -252,8 +225,10 @@ function NotificationPreferences() {
       if (data.notificationPrefs) setPrefs(data.notificationPrefs);
       setLoading(false);
     }
-    if (user?.id) fetchPrefs();
-  }, [user?.id]);
+    fetchPrefs();
+  }, [user?.id, user]);
+
+  if (!user) return null;
 
   async function handleChange(key: string, value: boolean) {
     setPrefs((prev) => ({ ...prev, [key]: value }));
@@ -370,12 +345,13 @@ function PersonalizationSection() {
 
 function PrivacyDataSection() {
   const { user } = useAuth();
-  if (!user) return null;
   const [downloading, setDownloading] = useState(false);
   const [analyticsConsent, setAnalyticsConsent] = useState(true); // TODO: Load from backend
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [format, setFormat] = useState<'pdf' | 'docx'>('pdf');
+
+  if (!user) return null;
 
   async function handleDownload() {
     setDownloading(true);
@@ -413,22 +389,33 @@ function PrivacyDataSection() {
       doc.text('Quiz Attempts:', 10, y);
       y += 8;
       if (data.quizAttempts && data.quizAttempts.length > 0) {
-        data.quizAttempts.forEach((a: any, i: number) => {
-          doc.text(
-            `${i + 1}. ${a.quizTitle || ''} (${a.subject || ''}) - Score: ${
-              a.score || 0
-            }/${a.totalPoints || 0} - Date: ${
-              a.completedAt ? new Date(a.completedAt).toLocaleString() : ''
-            }`,
-            12,
-            y
-          );
-          y += 7;
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
+        data.quizAttempts.forEach(
+          (
+            a: {
+              quizTitle?: string;
+              subject?: string;
+              score?: number;
+              totalPoints?: number;
+              completedAt?: string;
+            },
+            i: number
+          ) => {
+            doc.text(
+              `${i + 1}. ${a.quizTitle || ''} (${a.subject || ''}) - Score: ${
+                a.score || 0
+              }/${a.totalPoints || 0} - Date: ${
+                a.completedAt ? new Date(a.completedAt).toLocaleString() : ''
+              }`,
+              12,
+              y
+            );
+            y += 7;
+            if (y > 270) {
+              doc.addPage();
+              y = 20;
+            }
           }
-        });
+        );
       } else {
         doc.text('No quiz attempts found.', 12, y);
         y += 7;
@@ -437,18 +424,23 @@ function PrivacyDataSection() {
       doc.text('Achievements:', 10, y);
       y += 8;
       if (data.achievements && data.achievements.length > 0) {
-        data.achievements.forEach((a: any, i: number) => {
-          doc.text(
-            `${i + 1}. ${a.title || a.name || ''} - ${a.description || ''}`,
-            12,
-            y
-          );
-          y += 7;
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
+        data.achievements.forEach(
+          (
+            a: { title?: string; name?: string; description?: string },
+            i: number
+          ) => {
+            doc.text(
+              `${i + 1}. ${a.title || a.name || ''} - ${a.description || ''}`,
+              12,
+              y
+            );
+            y += 7;
+            if (y > 270) {
+              doc.addPage();
+              y = 20;
+            }
           }
-        });
+        );
       } else {
         doc.text('No achievements found.', 12, y);
         y += 7;
@@ -457,14 +449,20 @@ function PrivacyDataSection() {
       doc.text('Badges:', 10, y);
       y += 8;
       if (data.badges && data.badges.length > 0) {
-        data.badges.forEach((b: any, i: number) => {
-          doc.text(`${i + 1}. ${b.name || ''} - ${b.description || ''}`, 12, y);
-          y += 7;
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
+        data.badges.forEach(
+          (b: { name?: string; description?: string }, i: number) => {
+            doc.text(
+              `${i + 1}. ${b.name || ''} - ${b.description || ''}`,
+              12,
+              y
+            );
+            y += 7;
+            if (y > 270) {
+              doc.addPage();
+              y = 20;
+            }
           }
-        });
+        );
       } else {
         doc.text('No badges found.', 12, y);
         y += 7;
@@ -511,7 +509,13 @@ function PrivacyDataSection() {
           ],
         }),
         ...(data.quizAttempts || []).map(
-          (a: any) =>
+          (a: {
+            quizTitle?: string;
+            subject?: string;
+            score?: number;
+            totalPoints?: number;
+            completedAt?: string;
+          }) =>
             new TableRow({
               children: [
                 new TableCell({ children: [new Paragraph(a.quizTitle || '')] }),
@@ -542,7 +546,7 @@ function PrivacyDataSection() {
           ],
         }),
         ...(data.achievements || []).map(
-          (a: any) =>
+          (a: { title?: string; name?: string; description?: string }) =>
             new TableRow({
               children: [
                 new TableCell({
@@ -563,7 +567,7 @@ function PrivacyDataSection() {
           ],
         }),
         ...(data.badges || []).map(
-          (b: any) =>
+          (b: { name?: string; description?: string }) =>
             new TableRow({
               children: [
                 new TableCell({ children: [new Paragraph(b.name || '')] }),
@@ -762,10 +766,9 @@ function SupportSection() {
     setSuccess(null);
     setError(null);
     setTicket(null);
-    let screenshotUrl = '';
-    if (screenshot) {
-      screenshotUrl = (await uploadToCloudinary(screenshot)) || '';
-    }
+    const screenshotUrl = screenshot
+      ? (await uploadToCloudinary(screenshot)) || ''
+      : '';
     const res = await fetch('/api/student/support', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -808,7 +811,7 @@ function SupportSection() {
       setReportSending(false);
       return;
     }
-    let screenshotUrl = (await uploadToCloudinary(reportScreenshot)) || '';
+    const screenshotUrl = (await uploadToCloudinary(reportScreenshot)) || '';
     const res = await fetch('/api/student/support', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

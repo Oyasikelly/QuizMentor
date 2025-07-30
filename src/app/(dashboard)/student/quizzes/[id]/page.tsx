@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import { GoToSubjectButton } from './GoToSubjectButton';
 import React from 'react';
 
-export default async function StudentQuizRedirectPage(props: any) {
+export default async function StudentQuizRedirectPage(props: {
+  params: { id: string | string[] };
+}) {
   // Await params in Next.js 14+ server components
   const params = await props.params;
   const quizId =

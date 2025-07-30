@@ -228,8 +228,8 @@ export function QuizCard({ quiz, onAction }: QuizCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{quiz.title}"? This action cannot
-              be undone.
+              Are you sure you want to delete &quot;{quiz.title}&quot;? This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

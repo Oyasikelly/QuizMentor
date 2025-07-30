@@ -9,10 +9,9 @@ export const APP_CONFIG = {
 
 export const API_ENDPOINTS = {
   auth: {
-    login: '/api/auth/login',
-    register: '/api/auth/register',
-    logout: '/api/auth/logout',
-    profile: '/api/auth/profile',
+    syncUser: '/api/auth/sync-user',
+    getUser: (userId: string) => `/api/auth/user/${userId}`,
+    verifyEmail: '/api/auth/verify-email',
   },
   quizzes: {
     list: '/api/quizzes',

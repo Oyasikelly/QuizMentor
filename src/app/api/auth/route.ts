@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       });
     }
     // Login logic
-    let user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         email: body.email,
         role: body.role?.toUpperCase(),
@@ -89,11 +89,7 @@ export async function POST(request: NextRequest) {
       profile = await prisma.teacher.findUnique({ where: { userId: user.id } });
     }
     // Remove conflicting fields from profile before spreading
-    const {
-      id: _profileId,
-      userId: _profileUserId,
-      ...profileFields
-    } = profile || {};
+    const { ...profileFields } = profile || {};
     // Return user info (omit sensitive fields)
     return NextResponse.json({
       user: {

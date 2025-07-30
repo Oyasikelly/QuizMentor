@@ -19,7 +19,13 @@ function AIGenerationQueue() {
   );
 }
 
-function AIGenerationReviewPanel({ result }: { result: any }) {
+type AIResult = {
+  error?: string;
+  content?: string;
+  type: string;
+} | null;
+
+function AIGenerationReviewPanel({ result }: { result: AIResult }) {
   return (
     <div className="bg-background border rounded p-4 mb-4">
       <h3 className="font-semibold mb-2">Review & Edit</h3>
@@ -55,12 +61,13 @@ function AIGenerationHistory() {
 
 export default function TeacherAIGenerationPage() {
   const { user, loading } = useAuth();
-  if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
-  if (!user) return null;
   const [tab, setTab] = useState<
     'question' | 'explanation' | 'study' | 'assessment'
   >('question');
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<AIResult>(null);
+
+  if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
+  if (!user) return null;
   return (
     <DashboardLayout pageTitle="AI Generation Hub">
       <div className="max-w-5xl mx-auto">
@@ -71,7 +78,9 @@ export default function TeacherAIGenerationPage() {
         </p>
         <Tabs
           value={tab}
-          onValueChange={(v) => setTab(v as any)}
+          onValueChange={(v) =>
+            setTab(v as 'question' | 'explanation' | 'study' | 'assessment')
+          }
           className="mb-6"
         >
           <TabsList>

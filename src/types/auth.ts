@@ -2,11 +2,14 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher' | 'admin' | 'super_admin';
   image?: string;
   createdAt: Date;
   updatedAt: Date;
   organizationId?: string;
+  unitId?: string;
+  isActive?: boolean;
+  emailVerified?: boolean;
   institution?: string;
   department?: string;
   studentId?: string;
@@ -16,13 +19,17 @@ export interface User {
   phoneNumber?: string;
   // Teacher-specific properties
   subjectsTaught?: string[];
+  employeeId?: string;
   // Email confirmation
   email_confirmed_at?: string | null;
+  // Profile completion status
+  profileComplete?: boolean;
 }
 
 export interface LoginCredentials {
   email: string;
   password: string;
+  role: 'student' | 'teacher';
 }
 
 export interface RegisterCredentials {
@@ -30,11 +37,13 @@ export interface RegisterCredentials {
   password: string;
   name: string;
   role: 'student' | 'teacher';
+  organizationId: string;
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
+  message?: string;
 }
 
 export interface AuthError {

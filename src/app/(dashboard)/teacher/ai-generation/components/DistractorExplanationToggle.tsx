@@ -7,7 +7,12 @@ export function DistractorExplanationToggle({
   setGenerateDistractors,
   generateExplanations,
   setGenerateExplanations,
-}: any) {
+}: {
+  generateDistractors: boolean;
+  setGenerateDistractors: React.Dispatch<React.SetStateAction<boolean>>;
+  generateExplanations: boolean;
+  setGenerateExplanations: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   return (
     <div className="flex gap-8 items-center">
       <div className="flex items-center gap-2">

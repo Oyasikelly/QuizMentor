@@ -21,25 +21,7 @@ import { useRouter } from 'next/navigation';
 import PendingGradingPanel from '@/components/teacher/manage-quizzes/PendingGradingPanel';
 import { useAuth } from '@/hooks/useAuth';
 import QuizPreview from '@/components/teacher/quiz-creator/quiz-preview';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-
-// Mock user data for dashboard layout
-const mockUser = {
-  id: 'teacher1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
-// Helper to generate subjectId from subject object
-const subjectObj = (id: string, name: string) => ({ id, name });
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 // Mock quiz data
 const mockQuizzes: Quiz[] = [
@@ -138,6 +120,56 @@ const mockQuizzes: Quiz[] = [
 type ViewMode = 'card' | 'table';
 type QuizStatus = 'all' | 'active' | 'draft' | 'archived';
 
+type AttemptsData = {
+  attemptsPerQuiz: Array<{
+    quizId: string;
+    quizTitle: string;
+    attempts: number;
+    averageScore: number;
+  }>;
+  attemptsBySubject: Array<{
+    subjectId: string;
+    subjectName: string;
+    attempts: number;
+    averageScore: number;
+  }>;
+  totalAttempts: number;
+  summary: {
+    totalQuizzes: number;
+    activeQuizzes: number;
+    averageScore: number;
+    totalStudents: number;
+    averageAttemptsPerQuiz: number;
+  };
+  recentAttempts: Array<{
+    id: string;
+    quizTitle: string;
+    studentName: string;
+    score: number;
+    completedAt: string;
+  }>;
+};
+
+type StudentsData = {
+  studentsInDepartment: Array<{
+    studentId: string;
+    studentName: string;
+    email: string;
+    department: string;
+  }>;
+  studentsInSubjects: Array<{
+    studentId: string;
+    studentName: string;
+    email: string;
+    subjects: string[];
+  }>;
+  summary: {
+    totalInDepartment: number;
+    totalInSubjects: number;
+    overlapCount: number;
+  };
+};
+
 export default function ManageQuizzesPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -155,9 +187,9 @@ export default function ManageQuizzesPage() {
   const [previewQuiz, setPreviewQuiz] = useState<Quiz | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [attemptsData, setAttemptsData] = useState<any>(null);
+  const [attemptsData, setAttemptsData] = useState<AttemptsData | null>(null);
   const [attemptsLoading, setAttemptsLoading] = useState(false);
-  const [studentsData, setStudentsData] = useState<any>(null);
+  const [studentsData, setStudentsData] = useState<StudentsData | null>(null);
   const [studentsLoading, setStudentsLoading] = useState(false);
 
   // Fetch quizzes from API
@@ -544,7 +576,7 @@ export default function ManageQuizzesPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {attemptsData.recentAttempts}
+                    {attemptsData.recentAttempts.length}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     Recent (30 days)

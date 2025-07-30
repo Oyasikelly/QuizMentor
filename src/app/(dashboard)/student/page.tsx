@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { StudentDashboard } from '@/components/student/student-dashboard';
-import { Quiz } from '@/types/quiz';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { useAuth } from '@/hooks/useAuth';
 

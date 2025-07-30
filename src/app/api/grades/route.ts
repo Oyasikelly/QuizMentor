@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 // POST /api/grades - Teacher submits a manual grade
 export async function POST(request: NextRequest) {
@@ -32,6 +31,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ manualGrade });
   } catch (error) {
+    console.error('Failed to submit manual grade:', error);
     return NextResponse.json(
       { error: 'Failed to submit manual grade.' },
       { status: 500 }
@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const quizId = searchParams.get('quizId');
-    const teacherId = searchParams.get('teacherId');
 
     if (!quizId) {
       return NextResponse.json(
@@ -66,6 +65,7 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json({ answers });
   } catch (error) {
+    console.error('Failed to fetch pending grades:', error);
     return NextResponse.json(
       { error: 'Failed to fetch pending grades.' },
       { status: 500 }

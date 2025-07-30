@@ -18,12 +18,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   DocumentUploadState,
   AIGenerationSettings,
 } from '@/types/quiz-creation';
+
+type QuestionType = 'multiple-choice' | 'true-false' | 'short-answer' | 'essay';
 
 interface DocumentUploaderProps {
   uploadState: DocumentUploadState;
@@ -389,7 +390,7 @@ export default function DocumentUploader({
                       <input
                         type="checkbox"
                         checked={generationSettings.questionTypes.includes(
-                          type as any
+                          type as QuestionType
                         )}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -397,7 +398,7 @@ export default function DocumentUploader({
                               ...generationSettings,
                               questionTypes: [
                                 ...generationSettings.questionTypes,
-                                type as any,
+                                type as QuestionType,
                               ],
                             });
                           } else {

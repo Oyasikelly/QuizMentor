@@ -6,7 +6,11 @@ export async function generateWithAI({
 }: {
   type: 'question' | 'explanation' | 'study' | 'assessment';
   prompt: string;
-  settings: any;
+  settings: {
+    difficulty?: string;
+    subject?: string;
+    [key: string]: unknown;
+  };
   file?: string;
 }) {
   try {

@@ -15,9 +15,15 @@ const mockTopics = [
   'Electricity',
 ];
 
+interface AIGenerationResult {
+  error?: string;
+  content?: string;
+  type: string;
+}
+
 interface Props {
   tab: 'question' | 'explanation' | 'study' | 'assessment';
-  onGenerate: (result: any) => void;
+  onGenerate: (result: AIGenerationResult) => void;
 }
 
 export function AIGenerationInputPanel({ tab, onGenerate }: Props) {
@@ -99,7 +105,7 @@ export function AIGenerationInputPanel({ tab, onGenerate }: Props) {
           </div>
           <textarea
             className="border rounded p-2 min-h-[60px]"
-            placeholder={`Describe what you want to generate (e.g., 'Generate 5 MCQs on photosynthesis')`}
+            placeholder={`Describe what you want to generate (e.g., &apos;Generate 5 MCQs on photosynthesis&apos;)`}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             disabled={loading}

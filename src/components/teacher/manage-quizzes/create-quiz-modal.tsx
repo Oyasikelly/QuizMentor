@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, FileText, Edit, Copy } from 'lucide-react';
+import { FileText, Edit, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,10 +29,18 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+interface QuizData {
+  title: string;
+  description: string;
+  subject: string;
+  category: string;
+  method?: string;
+}
+
 interface CreateQuizModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateQuiz: (quizData: any) => void;
+  onCreateQuiz: (quizData: QuizData) => void;
 }
 
 const CREATE_METHODS = [
@@ -84,7 +92,7 @@ export function CreateQuizModal({
 }: CreateQuizModalProps) {
   const router = useRouter();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [quizData, setQuizData] = useState({
+  const [quizData, setQuizData] = useState<QuizData>({
     title: '',
     description: '',
     subject: '',
@@ -128,7 +136,7 @@ export function CreateQuizModal({
         <DialogHeader>
           <DialogTitle>Create New Quiz</DialogTitle>
           <DialogDescription>
-            Choose how you'd like to create your quiz
+            Choose how you&apos;d like to create your quiz
           </DialogDescription>
         </DialogHeader>
 

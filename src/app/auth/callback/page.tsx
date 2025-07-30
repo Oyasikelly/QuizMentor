@@ -3,12 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { getCurrentUser } from '@/lib/auth';
-import { checkProfileCompletion } from '@/lib/profile-utils';
+import { handleEmailConfirmation } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -17,12 +22,12 @@ export default function AuthCallbackPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
-  const [message, setMessage] = useState('Verifying your email...');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const handleCallback = async () => {
       try {
-        // Get the access token and refresh token from URL params
+        // Get the access token and refresh token from URL parameters
         const accessToken = searchParams.get('access_token');
         const refreshToken = searchParams.get('refresh_token');
         const error = searchParams.get('error');
@@ -36,66 +41,50 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        if (!accessToken) {
+        if (!accessToken || !refreshToken) {
           setStatus('error');
-          setMessage('No access token found');
-          toast.error('No access token found');
+          setMessage('Invalid callback parameters');
+          toast.error('Invalid callback parameters');
           setTimeout(() => router.push('/login'), 3000);
           return;
         }
 
-        // Set the session manually
-        const { data, error: sessionError } = await supabase.auth.setSession({
+        // Set the session with the tokens
+        const { error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
-          refresh_token: refreshToken || '',
+          refresh_token: refreshToken,
         });
 
         if (sessionError) {
           setStatus('error');
-          setMessage('Failed to set session');
-          toast.error('Failed to set session');
+          setMessage(sessionError.message);
+          toast.error(sessionError.message);
           setTimeout(() => router.push('/login'), 3000);
           return;
         }
 
-        // Get the current user
-        const currentUser = await getCurrentUser();
+        // Handle email confirmation
+        const user = await handleEmailConfirmation();
 
-        if (!currentUser) {
+        if (!user) {
           setStatus('error');
-          setMessage('Failed to get user information');
-          toast.error('Failed to get user information');
+          setMessage('Failed to fetch user profile');
+          toast.error('Failed to fetch user profile');
           setTimeout(() => router.push('/login'), 3000);
           return;
         }
 
         // Set user in context
-        setUser(currentUser);
+        setUser(user);
 
-        // Check profile completion and redirect
-        const profileStatus = checkProfileCompletion(currentUser);
+        setStatus('success');
+        setMessage('Email verified successfully!');
+        toast.success('Email verified successfully!');
 
-        if (!profileStatus.isComplete) {
-          setStatus('success');
-          setMessage(
-            'Email confirmed! Redirecting to complete your profile...'
-          );
-          toast.success('Email confirmed! Please complete your profile.');
-
-          // Redirect to complete profile page
-          setTimeout(() => {
-            checkAndRedirect(currentUser);
-          }, 2000);
-        } else {
-          setStatus('success');
-          setMessage('Email confirmed! Redirecting to dashboard...');
-          toast.success('Email confirmed! Welcome to QuizMentor.');
-
-          // Redirect to dashboard
-          setTimeout(() => {
-            checkAndRedirect(currentUser);
-          }, 2000);
-        }
+        // Redirect based on profile completion
+        setTimeout(() => {
+          checkAndRedirect(user);
+        }, 1500);
       } catch (error) {
         console.error('Auth callback error:', error);
         setStatus('error');
@@ -105,33 +94,47 @@ export default function AuthCallbackPage() {
       }
     };
 
-    handleAuthCallback();
+    handleCallback();
   }, [searchParams, router, setUser, checkAndRedirect]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center flex items-center justify-center gap-2">
-            {status === 'loading' && (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            )}
-            {status === 'success' && (
-              <CheckCircle className="w-5 h-5 text-green-500" />
-            )}
-            {status === 'error' && (
-              <AlertCircle className="w-5 h-5 text-red-500" />
-            )}
-            {status === 'loading' && 'Verifying Email'}
-            {status === 'success' && 'Email Confirmed'}
-            {status === 'error' && 'Verification Failed'}
-          </CardTitle>
+        <CardHeader className="text-center">
+          <CardTitle>Email Verification</CardTitle>
+          <CardDescription>
+            {status === 'loading' && 'Verifying your email...'}
+            {status === 'success' && 'Email verified successfully!'}
+            {status === 'error' && 'Verification failed'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-muted-foreground">{message}</p>
           {status === 'loading' && (
-            <div className="mt-4">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+            <div className="flex flex-col items-center space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Please wait while we verify your email address...
+              </p>
+            </div>
+          )}
+
+          {status === 'success' && (
+            <div className="flex flex-col items-center space-y-4">
+              <CheckCircle className="w-8 h-8 text-green-500" />
+              <p className="text-sm text-muted-foreground">
+                Your email has been verified successfully. Redirecting you to
+                your dashboard...
+              </p>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="flex flex-col items-center space-y-4">
+              <XCircle className="w-8 h-8 text-red-500" />
+              <p className="text-sm text-muted-foreground">{message}</p>
+              <p className="text-xs text-muted-foreground">
+                Redirecting to login page...
+              </p>
             </div>
           )}
         </CardContent>

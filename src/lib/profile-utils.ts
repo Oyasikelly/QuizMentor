@@ -24,7 +24,7 @@ export function checkProfileCompletion(user: User): ProfileCompletionStatus {
   } else if (user.role === 'teacher') {
     // Check teacher-specific required fields
     if (!user.department) missingFields.push('department');
-    if (!user.institution) missingFields.push('institution');
+    if (!user.employeeId) missingFields.push('employee ID');
 
     return {
       isComplete: missingFields.length === 0,

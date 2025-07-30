@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function DataTable({ subjectId }: { subjectId: string }) {
+export default function DataTable() {
   return (
     <div className="my-8">
       {/* TODO: Data table for analytics */}

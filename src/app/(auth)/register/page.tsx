@@ -21,30 +21,73 @@ import { ModeToggle } from '@/components/toggle-switch';
 import { registerUser } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { user, setUser, checkAndRedirect } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
     role: 'student',
+    organizationId: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(true);
 
-  // Redirect if user is already logged in
+  // Remove the automatic redirect logic - users should be able to register new accounts
+  // even if they have an existing session
+
+  // Fetch organizations on component mount
   useEffect(() => {
-    if (user) {
-      checkAndRedirect(user);
-    }
-  }, [user, checkAndRedirect]);
+    const fetchOrganizations = async () => {
+      try {
+        setLoadingOrgs(true);
+        const response = await fetch('/api/organizations');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch organizations');
+        }
+
+        const data = await response.json();
+        setOrganizations(data.organizations);
+
+        // Don't auto-select - user must choose
+      } catch (error) {
+        console.error('Error fetching organizations:', error);
+        toast.error('Failed to load organizations. Please try again.');
+      } finally {
+        setLoadingOrgs(false);
+      }
+    };
+
+    fetchOrganizations();
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success('Logged out. You can now register a new account.');
+  };
 
   const handleInputChange = (
-    field: 'name' | 'email' | 'password' | 'confirmPassword' | 'role',
+    field:
+      | 'name'
+      | 'email'
+      | 'password'
+      | 'confirmPassword'
+      | 'role'
+      | 'organizationId',
     value: string
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -75,6 +118,10 @@ export default function RegisterPage() {
       toast.error('Passwords do not match');
       return false;
     }
+    if (!formData.organizationId) {
+      toast.error('Please select an organization');
+      return false;
+    }
     return true;
   };
 
@@ -89,26 +136,24 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
         role: formData.role as 'student' | 'teacher',
+        organizationId: formData.organizationId,
       });
 
-      setUser(response.user);
+      // Show success message about email confirmation
       toast.success(
-        `Account created successfully! Welcome to QuizMentor, ${response.user.name}!`
+        response.message ||
+          'Registration successful! Please check your email to confirm your account.'
       );
 
-      // Check if email confirmation is required
-      if (response.user.email && !response.user.email_confirmed_at) {
-        toast.info(
-          'Please check your email to confirm your account before logging in.'
-        );
-        router.push('/login');
-      } else {
-        // If email is already confirmed, check profile completion
-        checkAndRedirect(response.user);
-      }
-    } catch (err: any) {
+      // Redirect to login page with confirmation message
+      router.push(
+        '/login?message=Please check your email to confirm your account before logging in.'
+      );
+    } catch (err: unknown) {
       const errorMessage =
-        err.message || 'Registration failed. Please try again.';
+        err instanceof Error
+          ? err.message
+          : 'Registration failed. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -151,6 +196,31 @@ export default function RegisterPage() {
                 </p>
               </div>
             </div>
+
+            {/* Notice for logged-in users */}
+            {user && (
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      You're currently logged in as <strong>{user.name}</strong>{' '}
+                      ({user.role}).
+                    </p>
+                    <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                      To register a new account, please logout first.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="ml-4"
+                  >
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Register Form */}
             <Card>
@@ -213,6 +283,34 @@ export default function RegisterPage() {
                       }
                       disabled={isLoading}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="organization">Organization</Label>
+                    <Select
+                      value={formData.organizationId}
+                      onValueChange={(value) =>
+                        handleInputChange('organizationId', value)
+                      }
+                      disabled={isLoading || loadingOrgs}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            loadingOrgs
+                              ? 'Loading organizations...'
+                              : 'Choose your organization'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {organizations.map((org: any) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
