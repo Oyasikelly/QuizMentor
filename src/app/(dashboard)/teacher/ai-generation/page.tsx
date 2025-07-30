@@ -74,20 +74,22 @@ export default function TeacherAIGenerationPage() {
           onValueChange={(v) => setTab(v as any)}
           className="mb-6"
         >
-          <TabsList>
-            <TabsTrigger value="question">
-              <BookOpen className="w-4 h-4 mr-1" /> Questions
-            </TabsTrigger>
-            <TabsTrigger value="explanation">
-              <FileText className="w-4 h-4 mr-1" /> Explanations
-            </TabsTrigger>
-            <TabsTrigger value="study">
-              <ListChecks className="w-4 h-4 mr-1" /> Study Materials
-            </TabsTrigger>
-            <TabsTrigger value="assessment">
-              <Sparkles className="w-4 h-4 mr-1" /> Assessments
-            </TabsTrigger>
-          </TabsList>
+          <div className='w-80% flex mx-auto  flex-wrap'>
+            <TabsList className='flex-wrap mx-auto w-80%'>
+              <TabsTrigger value="question">
+                <BookOpen className="w-4 h-4 mr-1" /> Questions
+              </TabsTrigger>
+              <TabsTrigger value="explanation">
+                <FileText className="w-4 h-4 mr-1" /> Explanations
+              </TabsTrigger>
+              <TabsTrigger value="study">
+                <ListChecks className="w-4 h-4 mr-1" /> Study Materials
+              </TabsTrigger>
+              <TabsTrigger value="assessment">
+                <Sparkles className="w-4 h-4 mr-1" /> Assessments
+              </TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="question">
             <AIGenerationInputPanel tab="question" onGenerate={setResult} />
             <AIGenerationQueue />
