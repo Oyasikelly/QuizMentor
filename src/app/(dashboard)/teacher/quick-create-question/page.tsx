@@ -4,18 +4,9 @@ import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import Link from 'next/link';
 
-const mockUser = {
-  id: 'teacher1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
 export default function QuickCreateQuestionPage() {
   return (
-    <DashboardLayout user={mockUser} pageTitle="Quick Create Question">
+    <DashboardLayout pageTitle="Quick Create Question">
       <div className="max-w-2xl mx-auto py-12 flex flex-col gap-8 items-center text-center">
         <h1 className="text-3xl font-bold">Quick Create Question</h1>
         <p className="text-muted-foreground text-lg">

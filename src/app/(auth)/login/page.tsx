@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ModeToggle } from '@/components/toggle-switch';
 import {
@@ -31,6 +30,9 @@ import {
   AlertCircle,
   BarChart3,
 } from 'lucide-react';
+import { loginUser } from '@/lib/auth';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 // Add types for organization, unit, and subject
 interface Organization {
@@ -45,21 +47,26 @@ interface Unit {
 interface Subject {
   id: string;
   name: string;
-  organizationId: string;
   unitId?: string;
 }
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, setUser, checkAndRedirect } = useAuth();
   const [activeTab, setActiveTab] = useState<'student' | 'teacher'>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // Only email and password in formData
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      checkAndRedirect(user);
+    }
+  }, [user, checkAndRedirect]);
 
   // Email validation
   const isValidEmail = (email: string) =>
@@ -67,21 +74,20 @@ export default function LoginPage() {
 
   const handleInputChange = (field: 'email' | 'password', value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setError(null);
   };
 
   // Only validate email and password
   const validateForm = (): boolean => {
     if (!formData.email) {
-      setError('Email is required');
+      toast.error('Email is required');
       return false;
     }
     if (!isValidEmail(formData.email)) {
-      setError('Please enter a valid email address');
+      toast.error('Please enter a valid email address');
       return false;
     }
     if (!formData.password) {
-      setError('Password is required');
+      toast.error('Password is required');
       return false;
     }
     return true;
@@ -91,52 +97,22 @@ export default function LoginPage() {
     e.preventDefault();
     if (!validateForm()) return;
     setIsLoading(true);
-    setError(null);
+
     try {
-      const payload = {
+      const response = await loginUser({
         email: formData.email,
         password: formData.password,
-        role: activeTab,
-      };
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Login failed. Please try again.');
-        setIsLoading(false);
-        return;
-      }
-      localStorage.setItem('user', JSON.stringify(data.user));
-      // Profile completion check (as before)
-      if (data.user.role === 'student') {
-        if (
-          !data.user.academicLevel ||
-          !data.user.classYear ||
-          !data.user.phoneNumber
-        ) {
-          router.push('/student/complete-profile');
-        } else {
-          router.push('/student');
-        }
-      } else if (data.user.role === 'teacher') {
-        // New: Check teacher profile completion via API
-        const profileRes = await fetch(
-          `/api/profile/complete?userId=${data.user.id}`
-        );
-        const profile = await profileRes.json();
-        if (profile && profile.department) {
-          router.push('/teacher');
-        } else {
-          router.push('/teacher/complete-profile');
-        }
-      } else {
-        router.push('/');
-      }
-    } catch (err) {
-      setError('Invalid email or password. Please try again.');
+
+      setUser(response.user);
+      toast.success(`Welcome back, ${response.user.name}!`);
+
+      // Use the new profile completion check
+      checkAndRedirect(response.user);
+    } catch (err: any) {
+      const errorMessage =
+        err.message || 'Invalid email or password. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +120,6 @@ export default function LoginPage() {
 
   const handleDemoLogin = async (role: 'student' | 'teacher') => {
     setIsLoading(true);
-    setError(null);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -156,12 +131,19 @@ export default function LoginPage() {
         role,
         createdAt: new Date(),
         updatedAt: new Date(),
+        // Demo users have complete profiles for testing
+        academicLevel: role === 'student' ? 'Undergraduate' : undefined,
+        classYear: role === 'student' ? '2024' : undefined,
+        phoneNumber: role === 'student' ? '+1234567890' : undefined,
+        department: role === 'teacher' ? 'Computer Science' : undefined,
+        institution: role === 'teacher' ? 'Demo University' : undefined,
       };
 
-      localStorage.setItem('user', JSON.stringify(demoUser));
-      router.push(role === 'student' ? '/student' : '/teacher');
+      setUser(demoUser);
+      toast.success(`Welcome to the ${role} demo!`);
+      checkAndRedirect(demoUser);
     } catch (err) {
-      setError('Demo login failed. Please try again.');
+      toast.error('Demo login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -185,22 +167,35 @@ export default function LoginPage() {
         </header>
 
         {/* Main Content */}
-        <div className="w-full min-h-[calc(100vh-4rem)] flex items-center justify-center px-2 py-6 sm:px-6 lg:px-8 bg-background">
-          <div className="w-full max-w-md mx-auto flex flex-col gap-8">
-            {/* Login Header */}
-            <div className="text-center mb-4 sm:mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
-                Welcome Back
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                Sign in to access your personalized learning experience
-              </p>
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-md space-y-8">
+            {/* Welcome Section */}
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="bg-primary rounded-full p-3">
+                  <Shield className="w-8 h-8 text-primary-foreground" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">
+                  Welcome back
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  Sign in to your QuizMentor account
+                </p>
+              </div>
             </div>
 
-            {/* Login Card */}
-            <Card className="shadow-lg rounded-xl">
-              <CardContent className="p-4 sm:p-6">
-                {/* Role Tabs */}
+            {/* Login Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">Sign In</CardTitle>
+                <CardDescription className="text-center">
+                  Choose your role and enter your credentials
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Role Selection */}
                 <Tabs
                   value={activeTab}
                   onValueChange={(value) =>
@@ -208,284 +203,130 @@ export default function LoginPage() {
                   }
                   className="w-full"
                 >
-                  <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger
                       value="student"
-                      className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                      className="flex items-center gap-2"
                     >
-                      <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Student</span>
-                      <span className="sm:hidden">Student</span>
+                      <GraduationCap className="w-4 h-4" />
+                      Student
                     </TabsTrigger>
                     <TabsTrigger
                       value="teacher"
-                      className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                      className="flex items-center gap-2"
                     >
-                      <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Teacher</span>
-                      <span className="sm:hidden">Teacher</span>
+                      <BarChart3 className="w-4 h-4" />
+                      Teacher
                     </TabsTrigger>
                   </TabsList>
-
-                  <TabsContent value="student">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="student-email">Email Address</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="student-email"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={formData.email}
-                            onChange={(e) =>
-                              handleInputChange('email', e.target.value)
-                            }
-                            className="pl-10"
-                            disabled={isLoading}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="student-password">Password</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="student-password"
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="Enter your password"
-                            value={formData.password}
-                            onChange={(e) =>
-                              handleInputChange('password', e.target.value)
-                            }
-                            className="pl-10 pr-10"
-                            disabled={isLoading}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                            disabled={isLoading}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {error && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Signing in...
-                          </>
-                        ) : (
-                          'Sign in as Student'
-                        )}
-                      </Button>
-                    </form>
-                  </TabsContent>
-
-                  <TabsContent value="teacher">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="teacher-email">Email Address</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="teacher-email"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={formData.email}
-                            onChange={(e) =>
-                              handleInputChange('email', e.target.value)
-                            }
-                            className="pl-10"
-                            disabled={isLoading}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="teacher-password">Password</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="teacher-password"
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="Enter your password"
-                            value={formData.password}
-                            onChange={(e) =>
-                              handleInputChange('password', e.target.value)
-                            }
-                            className="pl-10 pr-10"
-                            disabled={isLoading}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                            disabled={isLoading}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {error && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Signing in...
-                          </>
-                        ) : (
-                          'Sign in as Teacher'
-                        )}
-                      </Button>
-                    </form>
-                  </TabsContent>
                 </Tabs>
 
-                {/* Demo Access */}
-                <div className="mt-4 sm:mt-6">
-                  <div className="border-t border-border my-3 sm:my-4"></div>
-                  <div className="text-center">
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-                      Try the platform
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDemoLogin('student')}
+                {/* Login Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          handleInputChange('email', e.target.value)
+                        }
+                        className="pl-10"
                         disabled={isLoading}
-                        className="flex-1 text-xs sm:text-sm"
-                      >
-                        Demo Student
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDemoLogin('teacher')}
-                        disabled={isLoading}
-                        className="flex-1 text-xs sm:text-sm"
-                      >
-                        Demo Teacher
-                      </Button>
+                      />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        value={formData.password}
+                        onChange={(e) =>
+                          handleInputChange('password', e.target.value)
+                        }
+                        className="pl-10 pr-10"
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
+                        disabled={isLoading}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      'Sign In'
+                    )}
+                  </Button>
+                </form>
+
+                {/* Demo Login Buttons */}
+                <div className="space-y-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or try demo
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDemoLogin('student')}
+                      disabled={isLoading}
+                      className="text-sm"
+                    >
+                      Demo Student
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDemoLogin('teacher')}
+                      disabled={isLoading}
+                      className="text-sm"
+                    >
+                      Demo Teacher
+                    </Button>
                   </div>
                 </div>
 
-                {/* Additional Links */}
-                <div className="mt-6 text-center space-y-2">
+                {/* Sign Up Link */}
+                <div className="text-center text-sm">
+                  Don't have an account?{' '}
                   <Link
                     href="/register"
-                    className="text-sm text-primary hover:underline"
+                    className="font-medium text-primary hover:underline"
                   >
-                    Don't have an account? Sign up
+                    Sign up
                   </Link>
-                  <div className="mt-4 text-center">
-                    <Link
-                      href="/request-reset"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Security & Trust Indicators */}
-            <div className="mt-4 sm:mt-6 text-center">
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  <span>SSL Secured</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>GDPR Compliant</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Features Preview */}
-            <div className="mt-8 flex flex-row flex-wrap md:flex-nowrap gap-2 sm:gap-4 items-stretch justify-center text-center">
-              <Card className="w-32 sm:w-40 md:w-48 lg:w-56 h-40 sm:h-44 md:h-48 flex-shrink-0">
-                <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center h-full">
-                  <div className="bg-primary/10 rounded-lg p-2 sm:p-3 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center mb-2 sm:mb-3">
-                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">
-                    AI-Powered Quizzes
-                  </h3>
-                  <p className="text-xs text-muted-foreground text-center leading-tight">
-                    Generate intelligent assessments from your materials
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="w-32 sm:w-40 md:w-48 lg:w-56 h-40 sm:h-44 md:h-48 flex-shrink-0">
-                <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center h-full">
-                  <div className="bg-primary/10 rounded-lg p-2 sm:p-3 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center mb-2 sm:mb-3">
-                    <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">
-                    Personalized Learning
-                  </h3>
-                  <p className="text-xs text-muted-foreground text-center leading-tight">
-                    Adaptive feedback and study recommendations
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="w-32 sm:w-40 md:w-48 lg:w-56 h-40 sm:h-44 md:h-48 flex-shrink-0">
-                <CardContent className="p-3 sm:p-4 flex flex-col items-center justify-center h-full">
-                  <div className="bg-primary/10 rounded-lg p-2 sm:p-3 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center mb-2 sm:mb-3">
-                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-xs sm:text-sm mb-1 sm:mb-2">
-                    Advanced Analytics
-                  </h3>
-                  <p className="text-xs text-muted-foreground text-center leading-tight">
-                    Detailed insights into student performance
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </div>

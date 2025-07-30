@@ -22,6 +22,7 @@ model Organization {
   subscriptionPlan    String               @default("basic")
   type                OrganizationType
   organizationalUnits OrganizationalUnit[]
+  question_bank       question_bank[]
   questions           Question[]
   quizAnswers         QuizAnswer[]
   quizAttempts        QuizAttempt[]
@@ -56,25 +57,28 @@ model OrganizationalUnit {
 }
 
 model User {
-  id                String   @id @default(uuid())
-  email             String   @unique
-  password          String
-  name              String?  // optional name field
+  id                  String              @id @default(uuid())
+  email               String              @unique
+  password            String?
   role                UserRole
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   organizationId      String
   isActive            Boolean             @default(true)
   unitId              String?
+  resetToken          String?
+  resetTokenExpiry    DateTime?
+  name                String?
+  emailVerified       Boolean             @default(false)
+  manualGrades        ManualGrade[]
+  chat_messages       chat_messages[]
+  chat_sessions       chat_sessions[]
   studentQuizAttempts QuizAttempt[]       @relation("StudentAttempts")
   teacherQuizzes      Quiz[]              @relation("TeacherQuizzes")
   student             Student?
   teacher             Teacher?
   organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   unit                OrganizationalUnit? @relation(fields: [unitId], references: [id])
-  resetToken        String?  // nullable
-  resetTokenExpiry  DateTime?
-  manualGrades ManualGrade[]
 
   @@map("users")
 }
@@ -93,13 +97,14 @@ model Student {
 }
 
 model Teacher {
-  id             String    @id @default(cuid())
-  userId         String    @unique
-  employeeId     String?
-  department     String?
-  phoneNumber    String?
-  subjects       Subject[] @relation("TeacherSubjects")
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String          @id @default(cuid())
+  userId        String          @unique
+  employeeId    String?
+  department    String?
+  phoneNumber   String?
+  question_bank question_bank[]
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects      Subject[]       @relation("TeacherSubjects")
 
   @@unique([userId, employeeId])
   @@map("teachers")
@@ -110,19 +115,19 @@ model Quiz {
   title          String
   description    String
   subjectId      String
-  subject        Subject       @relation(fields: [subjectId], references: [id])
   timeLimit      Int?
   totalPoints    Int           @default(0)
   isPublished    Boolean       @default(false)
-  status         QuizStatus    @default(DRAFT)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   teacherId      String
-  teacher        User          @relation("TeacherQuizzes", fields: [teacherId], references: [id], onDelete: Cascade)
+  organizationId String
+  status         QuizStatus    @default(DRAFT)
   questions      Question[]
   attempts       QuizAttempt[]
-  organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subject        Subject       @relation(fields: [subjectId], references: [id])
+  teacher        User          @relation("TeacherQuizzes", fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@map("quizzes")
 }
@@ -172,10 +177,11 @@ model QuizAnswer {
   attemptId      String
   questionId     String
   organizationId String
+  manualGrade    ManualGrade?
   attempt        QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  manualGrade    ManualGrade?
+
   @@map("quiz_answers")
 }
 
@@ -184,24 +190,66 @@ model Subject {
   name           String
   organizationId String
   unitId         String?
+  question_bank  question_bank[]
+  quizzes        Quiz[]
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   unit           OrganizationalUnit? @relation(fields: [unitId], references: [id])
-  quizzes        Quiz[]
-  teachers       Teacher[]   @relation("TeacherSubjects")
+  teachers       Teacher[]           @relation("TeacherSubjects")
 
   @@unique([organizationId, name])
   @@map("subjects")
 }
 
 model ManualGrade {
-  id           String   @id @default(cuid())
-  answerId     String   @unique
-  teacherId    String
+  id            String     @id @default(cuid())
+  answerId      String     @unique
+  teacherId     String
   pointsAwarded Int
-  feedback     String?
-  gradedAt     DateTime @default(now())
-  answer       QuizAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
-  teacher      User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  feedback      String?
+  gradedAt      DateTime   @default(now())
+  answer        QuizAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  teacher       User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+}
+
+model chat_messages {
+  id            String        @id
+  content       String
+  role          String
+  sessionId     String
+  userId        String
+  createdAt     DateTime      @default(now())
+  chat_sessions chat_sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  users         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model chat_sessions {
+  id            String          @id
+  title         String
+  type          String          @default("general")
+  userId        String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  chat_messages chat_messages[]
+  users         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model question_bank {
+  id             String       @id
+  text           String
+  type           QuestionType
+  difficulty     String       @default("Medium")
+  options        String[]
+  correctAnswer  String
+  explanation    String?
+  tags           String[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  teacherId      String
+  organizationId String
+  subjectId      String?
+  organizations  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subjects       Subject?     @relation(fields: [subjectId], references: [id])
+  teachers       Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
 
 enum OrganizationType {

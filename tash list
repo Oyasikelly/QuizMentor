@@ -1,0 +1,15 @@
+[33m2668097[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: commit: updated manage-quiz sections & student quiz page sections
+[33m87c8eee[m HEAD@{1}: commit (merge): Merge unrelated histories from origin/main
+[33m1089884[m[33m ([m[1;31morigin/master[m[33m)[m HEAD@{2}: Branch: renamed refs/heads/master to refs/heads/main
+[33m1089884[m[33m ([m[1;31morigin/master[m[33m)[m HEAD@{4}: commit: updating teacher section
+[33m06288e2[m HEAD@{5}: commit: updating teacheers section
+[33m4fed4c8[m HEAD@{6}: commit: updating teacher section
+[33md1fd8b3[m HEAD@{7}: commit: updating student dashboard pages
+[33m1bf8192[m HEAD@{8}: commit: updating student quiz section
+[33m04b6739[m HEAD@{9}: commit: updated student quiz section
+[33m3d6423d[m HEAD@{10}: commit: updating the student quiz section
+[33ma11457d[m HEAD@{11}: commit: quiz update
+[33med7b07e[m HEAD@{12}: commit: updated the quiz section
+[33m8adb70c[m HEAD@{13}: commit: added filtering feature for students quiz subjects
+[33m4f74480[m HEAD@{14}: commit: new update
+[33m16e4ba9[m HEAD@{15}: commit (initial): new update

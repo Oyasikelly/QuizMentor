@@ -9,16 +9,6 @@ import { Sidebar } from './components/Sidebar';
 import { QuestionList } from './components/QuestionList';
 import { QuestionEditor } from './components/QuestionEditor';
 
-// Mock user data for dashboard layout
-const mockUser = {
-  id: 'teacher1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
 // Mock stats
 const stats = [
   { label: 'Total Questions', value: 1240 },
@@ -48,7 +38,7 @@ export default function QuestionBankPage({
   };
 
   return (
-    <DashboardLayout user={mockUser} pageTitle="Question Bank">
+    <DashboardLayout pageTitle="Question Bank">
       <div className="flex flex-col gap-8">
         {/* Header & Stats */}
         <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

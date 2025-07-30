@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       try {
         await prisma.teacher.update({
           where: { userId },
-          data: { department, subjectsTaught, phoneNumber },
+          data: { department, phoneNumber },
         });
       } catch (e) {
         // If not found, create
@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
           data: {
             userId,
             department,
-            subjectsTaught,
             phoneNumber,
             employeeId,
           },

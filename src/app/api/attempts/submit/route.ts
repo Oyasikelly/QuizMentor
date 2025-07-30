@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { Question } from '@/types/quiz';
+
 const prisma = new PrismaClient();
 
 // Simple grading logic for demonstration
-function gradeAttempt(questions, answers) {
+function gradeAttempt(questions: Question[], answers: (string | string[])[]) {
   let score = 0;
-  const responses = questions.map((q, idx) => {
+  const responses = questions.map((q: Question, idx: number) => {
     const answer = answers[idx];
     let isCorrect = false;
     if (q.type === 'multiple-choice' || q.type === 'short-answer') {

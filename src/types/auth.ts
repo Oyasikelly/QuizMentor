@@ -10,6 +10,14 @@ export interface User {
   institution?: string;
   department?: string;
   studentId?: string;
+  // Student-specific properties
+  academicLevel?: string;
+  classYear?: string;
+  phoneNumber?: string;
+  // Teacher-specific properties
+  subjectsTaught?: string[];
+  // Email confirmation
+  email_confirmed_at?: string | null;
 }
 
 export interface LoginCredentials {

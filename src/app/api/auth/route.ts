@@ -74,6 +74,9 @@ export async function POST(request: NextRequest) {
       );
     }
     // Password check
+    if (!user.password) {
+      return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
+    }
     const passwordMatch = await bcrypt.compare(body.password, user.password);
     if (!passwordMatch) {
       return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
