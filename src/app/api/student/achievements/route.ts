@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     prevDate: string | null = null;
   for (const date of dates) {
     if (
-      prevDate &&
+      prevDate !== null &&
       new Date(date).getTime() - new Date(prevDate).getTime() === 86400000
     ) {
       streak++;
