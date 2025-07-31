@@ -143,7 +143,10 @@ export async function GET(req: NextRequest) {
       });
 
       const attemptsByQuiz = allAttemptsForStudentQuizzes.reduce(
-        (acc: Record<string, typeof allAttemptsForStudentQuizzes>, attempt) => {
+        (
+          acc: Record<string, typeof allAttemptsForStudentQuizzes>,
+          attempt: { quizId: string; studentId: string; score: number }
+        ) => {
           const key = attempt.quizId as string;
           if (!acc[key]) acc[key] = [];
           acc[key].push(attempt);
