@@ -110,7 +110,8 @@ export async function GET(req: NextRequest) {
         const prev = completedQuizzesMap.get(attempt.quiz.id);
         if (
           !prev ||
-          new Date(attempt.completedAt) > new Date(prev.completedAt)
+          new Date(attempt.completedAt as Date) >
+            new Date(prev.completedAt as Date)
         ) {
           completedQuizzesMap.set(attempt.quiz.id, {
             id: attempt.quiz.id,
