@@ -92,11 +92,13 @@ export async function GET(request: NextRequest) {
     const review = answers.map((a: unknown) => ({
       questionId: (a as { questionId: string }).questionId,
       question: (a as { question: { text: string } }).question.text,
-      correctAnswer: (a as { question: { correctAnswer: string | string[] } }).question.correctAnswer,
+      correctAnswer: (a as { question: { correctAnswer: string | string[] } })
+        .question.correctAnswer,
       userAnswer: (a as { answer: string | string[] }).answer,
       isCorrect: (a as { isCorrect: boolean }).isCorrect,
       pointsEarned: (a as { pointsEarned: number }).pointsEarned,
-      options: (a as { question: { options: string[] | null } }).question.options,
+      options: (a as { question: { options: string[] | null } }).question
+        .options,
     }));
     return NextResponse.json({ attempt, review });
   } catch {

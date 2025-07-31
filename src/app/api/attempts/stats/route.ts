@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       where: { unitId: studentUser.unitId, role: 'STUDENT' },
       select: { id: true },
     });
-    const studentIdsInDept = studentsInDept.map((s) => s.id);
+    const studentIdsInDept = studentsInDept.map((s: { id: string }) => s.id);
 
     const allDeptAttempts = await prisma.quizAttempt.findMany({
       where: {
