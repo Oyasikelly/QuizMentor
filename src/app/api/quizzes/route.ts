@@ -39,12 +39,14 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
       // Add questionsCount property to each quiz
-      quizzes = quizzes.map((q) => ({
-        ...q,
-        status: q.status?.toLowerCase(),
-        questionsCount: q._count?.questions ?? 0,
-        _count: undefined,
-      }));
+      quizzes = quizzes.map(
+        (q: { status?: string; _count?: { questions: number } }) => ({
+          ...q,
+          status: q.status?.toLowerCase(),
+          questionsCount: q._count?.questions ?? 0,
+          _count: undefined,
+        })
+      );
     } else if (teacherId) {
       // Find the teacher profile and their organization/subjects
       const teacher = await prisma.teacher.findUnique({
@@ -75,12 +77,14 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { createdAt: 'desc' },
       });
-      quizzes = quizzes.map((q) => ({
-        ...q,
-        status: q.status?.toLowerCase(),
-        questionsCount: q._count?.questions ?? 0,
-        _count: undefined,
-      }));
+      quizzes = quizzes.map(
+        (q: { status?: string; _count?: { questions: number } }) => ({
+          ...q,
+          status: q.status?.toLowerCase(),
+          questionsCount: q._count?.questions ?? 0,
+          _count: undefined,
+        })
+      );
     } else {
       // Fallback: return all published quizzes
       quizzes = await prisma.quiz.findMany({
@@ -94,12 +98,14 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { createdAt: 'desc' },
       });
-      quizzes = quizzes.map((q) => ({
-        ...q,
-        status: q.status?.toLowerCase(),
-        questionsCount: q._count?.questions ?? 0,
-        _count: undefined,
-      }));
+      quizzes = quizzes.map(
+        (q: { status?: string; _count?: { questions: number } }) => ({
+          ...q,
+          status: q.status?.toLowerCase(),
+          questionsCount: q._count?.questions ?? 0,
+          _count: undefined,
+        })
+      );
     }
     return NextResponse.json({ quizzes });
   } catch (error) {
