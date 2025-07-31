@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         .map((a: { completedAt: Date | null }) =>
           a.completedAt?.toISOString().slice(0, 10)
         )
-        .filter((d): d is string => !!d)
+        .filter((d: string | undefined): d is string => !!d)
     )
   ).sort();
   let streak = 0,
