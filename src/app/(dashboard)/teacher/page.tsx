@@ -3,6 +3,7 @@
 import React from 'react';
 import { TeacherDashboard } from '@/components/teacher/teacher-dashboard';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { SimpleLoadingDashboard } from '@/components/shared/loading-dashboard';
 import { useAuth } from '@/hooks/useAuth';
 
 // Mock data for demonstration
@@ -108,7 +109,15 @@ export default function TeacherDashboardPage() {
     return <div>Loading...</div>;
   }
   
-  if (loading || !user) return null;
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <SimpleLoadingDashboard />
+      </DashboardLayout>
+    );
+  }
+  
+  if (!user) return null;
   return (
     <DashboardLayout>
       <TeacherDashboard

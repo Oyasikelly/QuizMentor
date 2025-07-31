@@ -3,6 +3,7 @@
 import React from 'react';
 import { StudentDashboard } from '@/components/student/student-dashboard';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { SimpleLoadingDashboard } from '@/components/shared/loading-dashboard';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function StudentDashboardPage() {
@@ -13,7 +14,15 @@ export default function StudentDashboardPage() {
     return <div>Loading...</div>;
   }
 
-  if (loading || !user) return null;
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <SimpleLoadingDashboard />
+      </DashboardLayout>
+    );
+  }
+
+  if (!user) return null;
   return (
     <DashboardLayout>
       <StudentDashboard user={user} />
