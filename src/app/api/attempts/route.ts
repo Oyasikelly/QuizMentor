@@ -89,14 +89,14 @@ export async function GET(request: NextRequest) {
       },
     });
     // Format for review
-    const review = answers.map((a) => ({
-      questionId: a.questionId,
-      question: a.question.text,
-      correctAnswer: a.question.correctAnswer,
-      userAnswer: a.answer,
-      isCorrect: a.isCorrect,
-      pointsEarned: a.pointsEarned,
-      options: a.question.options,
+    const review = answers.map((a: unknown) => ({
+      questionId: (a as { questionId: string }).questionId,
+      question: (a as { question: { text: string } }).question.text,
+      correctAnswer: (a as { question: { correctAnswer: string | string[] } }).question.correctAnswer,
+      userAnswer: (a as { answer: string | string[] }).answer,
+      isCorrect: (a as { isCorrect: boolean }).isCorrect,
+      pointsEarned: (a as { pointsEarned: number }).pointsEarned,
+      options: (a as { question: { options: string[] | null } }).question.options,
     }));
     return NextResponse.json({ attempt, review });
   } catch {
