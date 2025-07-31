@@ -157,8 +157,10 @@ export async function GET(request: NextRequest) {
         type: 'mastery',
         title: `Mastered ${subj.name}`,
         description: `Achieved an average score of 90%+ in ${subj.name}`,
-        earnedAt: attempts.find((a) => a.quiz?.subject?.id === subjId)
-          ?.completedAt,
+        earnedAt: attempts.find(
+          (a: { quiz?: { subject?: { id: string } } }) =>
+            a.quiz?.subject?.id === subjId
+        )?.completedAt,
         points: 25,
         celebrationLevel: 'normal',
       });
@@ -168,8 +170,10 @@ export async function GET(request: NextRequest) {
         description: `Average 90%+ in ${subj.name}`,
         icon: 'star',
         category: 'performance',
-        earnedAt: attempts.find((a) => a.quiz?.subject?.id === subjId)
-          ?.completedAt,
+        earnedAt: attempts.find(
+          (a: { quiz?: { subject?: { id: string } } }) =>
+            a.quiz?.subject?.id === subjId
+        )?.completedAt,
         requirements: `Average 90%+ in ${subj.name}`,
         rarity: 'rare',
       });
