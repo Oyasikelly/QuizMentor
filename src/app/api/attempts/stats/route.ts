@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
       });
 
       const attemptsByQuiz = allAttemptsForStudentQuizzes.reduce(
-        (acc, attempt) => {
+        (acc: Record<string, typeof allAttemptsForStudentQuizzes>, attempt) => {
           const key = attempt.quizId as string;
           if (!acc[key]) acc[key] = [];
           acc[key].push(attempt);
