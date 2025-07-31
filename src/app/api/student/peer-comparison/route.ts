@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     where: { organizationId: user.organizationId, role: 'STUDENT' },
     select: { id: true },
   });
-  const studentIds = students.map((s) => s.id);
+  const studentIds = students.map((s: { id: string }) => s.id);
 
   // Get all quiz attempts for these students
   const allAttempts = await prisma.quizAttempt.findMany({
@@ -34,31 +34,46 @@ export async function GET(request: NextRequest) {
 
   // Calculate average score for each student
   const studentScores: Record<string, number[]> = {};
-  for (const attempt of allAttempts) {
+  for (const attempt of allAttempts as Array<{
+    studentId: string;
+    score: number | null;
+  }>) {
     if (!studentScores[attempt.studentId])
       studentScores[attempt.studentId] = [];
     if (typeof attempt.score === 'number')
       studentScores[attempt.studentId].push(attempt.score);
   }
-  const studentAverages = Object.entries(studentScores).map(([id, scores]) => ({
-    id,
-    avg: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0,
-  }));
+  const studentAverages = Object.entries(studentScores).map(
+    ([id, scores]: [string, number[]]) => ({
+      id,
+      avg: scores.length
+        ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length
+        : 0,
+    })
+  );
 
   // Find this student's average
-  const yourAvgObj = studentAverages.find((s) => s.id === studentId);
+  const yourAvgObj = studentAverages.find(
+    (s: { id: string; avg: number }) => s.id === studentId
+  );
   const yourAverage = yourAvgObj ? Math.round(yourAvgObj.avg) : 0;
 
   // Calculate class average
   const classAverage = studentAverages.length
     ? Math.round(
-        studentAverages.reduce((a, b) => a + b.avg, 0) / studentAverages.length
+        studentAverages.reduce(
+          (a: number, b: { avg: number }) => a + b.avg,
+          0
+        ) / studentAverages.length
       )
     : 0;
 
   // Calculate percentile
-  const sorted = studentAverages.sort((a, b) => b.avg - a.avg);
-  const yourRank = sorted.findIndex((s) => s.id === studentId) + 1;
+  const sorted = studentAverages.sort(
+    (a: { avg: number }, b: { avg: number }) => b.avg - a.avg
+  );
+  const yourRank =
+    sorted.findIndex((s: { id: string }) => s.id === studentId) + 1;
   const percentile =
     studentAverages.length > 0
       ? Math.round(
