@@ -32,11 +32,10 @@ export async function GET(request: NextRequest) {
     prevDate: string | null = null;
   for (const date of dates) {
     if (prevDate !== null) {
-      const prevDateStr = prevDate as string;
-      if (
-        new Date(date).getTime() - new Date(prevDateStr).getTime() ===
-        86400000
-      ) {
+      const prevDateStr: string = prevDate;
+      const currentDate = new Date(date);
+      const previousDate = new Date(prevDateStr);
+      if (currentDate.getTime() - previousDate.getTime() === 86400000) {
         streak++;
       } else {
         streak = 1;
