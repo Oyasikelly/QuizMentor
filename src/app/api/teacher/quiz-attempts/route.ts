@@ -64,45 +64,90 @@ export async function GET(request: NextRequest) {
 
     // Calculate total attempts across all quizzes
     const totalAttempts = quizzes.reduce(
-      (sum, quiz) => sum + quiz.attempts.length,
+      (sum: number, quiz: { attempts: { length: number } }) =>
+        sum + quiz.attempts.length,
       0
     );
 
     // Calculate attempts per quiz with student details
-    const attemptsPerQuiz = quizzes.map((quiz) => ({
-      quizId: quiz.id,
-      quizTitle: quiz.title,
-      subjectName: quiz.subject?.name || 'Unknown',
-      attempts: quiz.attempts.length,
-      averageScore:
-        quiz.attempts.length > 0
-          ? Math.round(
-              quiz.attempts.reduce((sum, attempt) => sum + attempt.score, 0) /
-                quiz.attempts.length
-            )
-          : 0,
-      students: quiz.attempts.map((attempt) => ({
-        id: attempt.student.id,
-        name: attempt.student.name || 'Unknown',
-        email: attempt.student.email,
-        score: attempt.score,
-        completedAt: attempt.completedAt,
-      })),
-    }));
+    const attemptsPerQuiz = quizzes.map(
+      (quiz: {
+        id: string;
+        title: string;
+        subject?: { name?: string | null } | null;
+        attempts: Array<{
+          score: number;
+          completedAt: Date | null;
+          student: {
+            id: string;
+            name?: string | null;
+            email?: string | null;
+          };
+        }>;
+      }) => ({
+        quizId: quiz.id,
+        quizTitle: quiz.title,
+        subjectName: quiz.subject?.name || 'Unknown',
+        attempts: quiz.attempts.length,
+        averageScore:
+          quiz.attempts.length > 0
+            ? Math.round(
+                quiz.attempts.reduce(
+                  (sum: number, attempt: { score: number }) =>
+                    sum + attempt.score,
+                  0
+                ) / quiz.attempts.length
+              )
+            : 0,
+        students: quiz.attempts.map(
+          (attempt: {
+            score: number;
+            completedAt: Date | null;
+            student: {
+              id: string;
+              name?: string | null;
+              email?: string | null;
+            };
+          }) => ({
+            id: attempt.student.id,
+            name: attempt.student.name || 'Unknown',
+            email: attempt.student.email,
+            score: attempt.score,
+            completedAt: attempt.completedAt,
+          })
+        ),
+      })
+    );
 
     // Calculate attempts per subject
     const subjectAttempts = new Map();
-    for (const quiz of quizzes) {
+    for (const quiz of quizzes as Array<{
+      id: string;
+      title: string;
+      subject?: { name?: string | null } | null;
+      attempts: Array<{
+        score: number;
+        completedAt: Date | null;
+        student: {
+          id: string;
+          name?: string | null;
+          email?: string | null;
+        };
+      }>;
+    }>) {
       const subjectName = quiz.subject?.name || 'Unknown';
       const currentCount = subjectAttempts.get(subjectName) || 0;
       subjectAttempts.set(subjectName, currentCount + quiz.attempts.length);
     }
 
     const attemptsBySubject = Array.from(subjectAttempts.entries()).map(
-      ([subjectName, attempts]) => ({
+      ([subjectName, attempts]: [subjectName: string, attempts: number]) => ({
         subjectName,
         attempts,
-        quizzes: quizzes.filter((q) => q.subject?.name === subjectName).length,
+        quizzes: quizzes.filter(
+          (q: { subject?: { name?: string | null } | null }) =>
+            q.subject?.name === subjectName
+        ).length,
       })
     );
 
@@ -128,28 +173,52 @@ export async function GET(request: NextRequest) {
     // Get unique students who have attempted quizzes
     const uniqueStudents = new Map();
     for (const quiz of quizzes) {
-      for (const attempt of quiz.attempts) {
-        if (!uniqueStudents.has(attempt.studentId)) {
-          uniqueStudents.set(attempt.studentId, {
-            id: attempt.student.id,
-            name: attempt.student.name || 'Unknown',
-            email: attempt.student.email,
+      for (const attempt of quiz.attempts as Array<{
+        score: number;
+        completedAt: Date | null;
+        student: {
+          id: string;
+          name?: string | null;
+          email?: string | null;
+        };
+        studentId: string;
+      }>) {
+        type AttemptType = {
+          score: number;
+          completedAt: Date | null;
+          student: {
+            id: string;
+            name?: string | null;
+            email?: string | null;
+          };
+          studentId: string;
+        };
+
+        const typedAttempt = attempt as AttemptType;
+
+        if (!uniqueStudents.has(typedAttempt.studentId)) {
+          uniqueStudents.set(typedAttempt.studentId, {
+            id: typedAttempt.student.id,
+            name: typedAttempt.student.name || 'Unknown',
+            email: typedAttempt.student.email,
             totalAttempts: 0,
             averageScore: 0,
             lastAttempt: null,
           });
         }
-        const student = uniqueStudents.get(attempt.studentId);
+        const student = uniqueStudents.get(typedAttempt.studentId);
         student.totalAttempts++;
         student.averageScore = Math.round(
-          (student.averageScore * (student.totalAttempts - 1) + attempt.score) /
+          (student.averageScore * (student.totalAttempts - 1) +
+            typedAttempt.score) /
             student.totalAttempts
         );
         if (
           !student.lastAttempt ||
-          (attempt.completedAt && attempt.completedAt > student.lastAttempt)
+          (typedAttempt.completedAt &&
+            typedAttempt.completedAt > student.lastAttempt)
         ) {
-          student.lastAttempt = attempt.completedAt;
+          student.lastAttempt = typedAttempt.completedAt;
         }
       }
     }
