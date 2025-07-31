@@ -316,7 +316,7 @@ export async function GET(req: NextRequest) {
       })),
       monthlyGoal: {
         target: 20,
-        achieved: attempts.filter((a) => {
+        achieved: attempts.filter((a: { completedAt: Date | null }) => {
           const d = a.completedAt;
           if (!d) return false;
           const now = new Date();
