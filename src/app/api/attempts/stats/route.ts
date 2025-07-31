@@ -87,18 +87,19 @@ export async function GET(req: NextRequest) {
     ).sort();
     let streak = 0,
       maxStreak = 0,
-      prevDate = null;
+      prevDate: string | null = null;
     for (const date of dates) {
       if (
         prevDate &&
-        new Date(date).getTime() - new Date(prevDate).getTime() === 86400000
+        new Date(date as string).getTime() - new Date(prevDate).getTime() ===
+          86400000
       ) {
         streak++;
       } else {
         streak = 1;
       }
       maxStreak = Math.max(maxStreak, streak);
-      prevDate = date;
+      prevDate = date as string;
     }
 
     // List of completed quizzes (one per quiz, latest attempt)
