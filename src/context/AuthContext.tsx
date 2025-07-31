@@ -86,6 +86,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [router]
   );
 
+  // Function to sync user to database if not found
+  const syncUserToDatabase = async (supabaseUser: {
+    id: string;
+    email?: string;
+    user_metadata?: {
+      name?: string;
+      role?: string;
+      organizationId?: string;
+    };
+    email_confirmed_at?: string | null;
+  }): Promise<User | null> => {
+    // Early return if email is missing
+    if (!supabaseUser.email) {
+      console.error('Cannot sync user: email is missing');
+      return null;
+    }
+    try {
+      const response = await fetch('/api/auth/sync-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: supabaseUser.id,
+          email: supabaseUser.email,
+          name: supabaseUser.user_metadata?.name || supabaseUser.email,
+          role: supabaseUser.user_metadata?.role || 'student',
+          emailVerified: supabaseUser.email_confirmed_at !== null,
+          organizationId: supabaseUser.user_metadata?.organizationId || '',
+        }),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data.user;
+    } catch (error) {
+      console.error('Error syncing user to database:', error);
+      return null;
+    }
+  };
+
   // Simple function to get user from your database
   const getUserFromDatabase = async (userId: string): Promise<User | null> => {
     try {
@@ -126,7 +170,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (session?.user) {
           // 2. Get user from your database
-          const userProfile = await getUserFromDatabase(session.user.id);
+          let userProfile = await getUserFromDatabase(session.user.id);
+
+          // If user profile not found, try to sync from Supabase
+          if (!userProfile && session.user.email) {
+            console.log('User profile not found, attempting to sync...');
+            userProfile = await syncUserToDatabase(session.user);
+          }
+
           if (userProfile) {
             setUser(userProfile);
             // Only redirect if we're on the login page (not register page)
@@ -151,7 +202,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Auth state changed:', event, session?.user?.id);
 
       if (event === 'SIGNED_IN' && session?.user) {
-        const userProfile = await getUserFromDatabase(session.user.id);
+        let userProfile = await getUserFromDatabase(session.user.id);
+
+        // If user profile not found, try to sync from Supabase
+        if (!userProfile && session.user.email) {
+          console.log(
+            'User profile not found during sign in, attempting to sync...'
+          );
+          userProfile = await syncUserToDatabase(session.user);
+        }
+
         if (userProfile) {
           setUser(userProfile);
           checkAndRedirect(userProfile);
