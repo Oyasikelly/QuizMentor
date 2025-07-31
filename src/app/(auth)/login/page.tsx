@@ -23,7 +23,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Shield,
   BarChart3,
 } from 'lucide-react';
 import { loginUser } from '@/lib/auth';
