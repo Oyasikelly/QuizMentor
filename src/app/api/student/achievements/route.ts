@@ -31,12 +31,16 @@ export async function GET(request: NextRequest) {
     maxStreak = 0,
     prevDate: string | null = null;
   for (const date of dates) {
-    if (
-      prevDate !== null &&
-      new Date(date).getTime() - new Date(prevDate as string).getTime() ===
+    if (prevDate !== null) {
+      const prevDateStr = prevDate as string;
+      if (
+        new Date(date).getTime() - new Date(prevDateStr).getTime() ===
         86400000
-    ) {
-      streak++;
+      ) {
+        streak++;
+      } else {
+        streak = 1;
+      }
     } else {
       streak = 1;
     }
