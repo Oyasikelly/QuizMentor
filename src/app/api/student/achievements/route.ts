@@ -118,7 +118,11 @@ export async function GET(request: NextRequest) {
   }
   // Perfect score badge
   const perfect = attempts.find(
-    (a) => a.score === a.totalPoints && a.totalPoints > 0
+    (a: { score: number | null; totalPoints: number | null }) =>
+      a.score !== null &&
+      a.totalPoints !== null &&
+      a.score === a.totalPoints &&
+      a.totalPoints > 0
   );
   if (perfect) {
     badges.push({
