@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   });
 
   // Calculate streaks
-  const dates = Array.from(
+  const dates: string[] = Array.from(
     new Set(
       attempts
         .map((a: { completedAt: Date | null }) =>
@@ -26,14 +26,14 @@ export async function GET(request: NextRequest) {
         )
         .filter((d: string | undefined): d is string => !!d)
     )
-  ).sort();
+  ).sort() as string[];
   let streak = 0,
     maxStreak = 0,
     prevDate: string | null = null;
   for (const date of dates) {
     if (prevDate !== null) {
       const prevDateStr: string = prevDate;
-      const currentDate = new Date(date);
+      const currentDate = new Date(date as string);
       const previousDate = new Date(prevDateStr);
       if (currentDate.getTime() - previousDate.getTime() === 86400000) {
         streak++;
