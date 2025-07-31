@@ -25,14 +25,14 @@ import {
   Loader2,
   Shield,
   BarChart3,
-  CheckCircle,
 } from 'lucide-react';
 import { loginUser } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { user, setUser, checkAndRedirect } = useAuth();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'student' | 'teacher'>('student');
@@ -324,5 +324,19 @@ export default function LoginPage() {
         </div>
       </div>
     </ThemeProvider>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }

@@ -1,13 +1,8 @@
 import React from 'react';
 import LineChart from './charts/LineChart';
 import BarChart from './charts/BarChart';
-import HeatMap from './charts/HeatMap';
 
-export default function PerformanceCharts({
-  subjectId,
-}: {
-  subjectId: string;
-}) {
+export default function PerformanceCharts() {
   return (
     <section
       aria-label="Performance Overview Charts"

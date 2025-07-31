@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Users, Target, TrendingUp } from 'lucide-react';
+import { BookOpen, Users, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface QuizStatsProps {

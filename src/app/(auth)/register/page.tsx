@@ -31,7 +31,7 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { user, setUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,7 +43,12 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [organizations, setOrganizations] = useState<any[]>([]);
+  type Organization = {
+    id: string;
+    name: string;
+    // Add other fields as needed based on your organization model
+  };
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loadingOrgs, setLoadingOrgs] = useState(true);
 
   // Remove the automatic redirect logic - users should be able to register new accounts
@@ -203,8 +208,8 @@ export default function RegisterPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      You're currently logged in as <strong>{user.name}</strong>{' '}
-                      ({user.role}).
+                      You&apos;re currently logged in as{' '}
+                      <strong>{user.name}</strong>
                     </p>
                     <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                       To register a new account, please logout first.
@@ -304,7 +309,7 @@ export default function RegisterPage() {
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {organizations.map((org: any) => (
+                        {organizations.map((org: Organization) => (
                           <SelectItem key={org.id} value={org.id}>
                             {org.name}
                           </SelectItem>

@@ -14,18 +14,18 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
-import { User } from '@/types/auth';
+// import { User } from '@/types/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { FullPageSpinner } from '@/components/shared/loading-spinner';
 
-const mockUser: User = {
-  id: 'teacher-1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
+// const mockUser: User = {
+//   id: 'teacher-1',
+//   name: 'Dr. Sarah Wilson',
+//   email: 'sarah.wilson@example.com',
+//   role: 'teacher',
+//   createdAt: new Date(),
+//   updatedAt: new Date(),
+// };
 
 type TeacherSettingsForm = {
   name: string;
@@ -44,9 +44,10 @@ const defaultValues: TeacherSettingsForm = {
 };
 
 function ProfileInfoForm() {
-  const { register, handleSubmit, formState } = useForm<TeacherSettingsForm>({
-    defaultValues,
-  });
+  const { register /*, handleSubmit */, formState } =
+    useForm<TeacherSettingsForm>({
+      defaultValues,
+    });
   // TODO: Integrate with backend
   return (
     <Card className="mb-6">

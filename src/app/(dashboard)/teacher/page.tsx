@@ -102,6 +102,12 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function TeacherDashboardPage() {
   const { user, loading } = useAuth();
+  
+  // Handle server-side rendering
+  if (typeof window === 'undefined') {
+    return <div>Loading...</div>;
+  }
+  
   if (loading || !user) return null;
   return (
     <DashboardLayout>

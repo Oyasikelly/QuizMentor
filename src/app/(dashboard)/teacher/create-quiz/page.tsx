@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
 import { QuizCreationMethod } from '@/types/quiz-creation';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,12 +68,13 @@ const CREATE_METHODS: QuizCreationMethod[] = [
 
 export default function CreateQuizPage() {
   const { user, loading } = useAuth();
-  if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
-  if (!user) return null;
   const router = useRouter();
   const [selectedMethod, setSelectedMethod] =
     useState<QuizCreationMethod | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
+  if (!user) return null;
 
   const handleMethodSelect = (method: QuizCreationMethod) => {
     setSelectedMethod(method);
@@ -114,7 +115,7 @@ export default function CreateQuizPage() {
               Create New Quiz
             </h1>
             <p className="text-muted-foreground mt-2">
-              Choose how you'd like to create your quiz
+              Choose how you&apos;d like to create your quiz
             </p>
           </div>
         </div>

@@ -278,20 +278,29 @@ export function Header({ user, onSidebarToggle, pageTitle }: HeaderProps) {
                             <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                               Badges
                             </div>
-                            {searchResults.badges.map((b: any) => (
-                              <div
-                                key={b.id}
-                                className="p-3 text-sm"
-                                onMouseDown={() =>
-                                  router.push('/student/achievements')
-                                }
-                              >
-                                <div className="font-medium">{b.name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {b.description}
+                            {searchResults.badges.map((b: unknown) => {
+                              const badge = b as {
+                                id: string;
+                                name: string;
+                                description: string;
+                              };
+                              return (
+                                <div
+                                  key={badge.id}
+                                  className="p-3 text-sm"
+                                  onMouseDown={() =>
+                                    router.push('/student/achievements')
+                                  }
+                                >
+                                  <div className="font-medium">
+                                    {badge.name}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {badge.description}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       {searchResults.subjects &&
@@ -300,19 +309,24 @@ export function Header({ user, onSidebarToggle, pageTitle }: HeaderProps) {
                             <div className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                               Subjects
                             </div>
-                            {searchResults.subjects.map((s: any) => (
-                              <div
-                                key={s.id}
-                                className="p-3 text-sm"
-                                onMouseDown={() =>
-                                  router.push(
-                                    `/student/quizzes?subjectId=${s.id}`
-                                  )
-                                }
-                              >
-                                <div className="font-medium">{s.name}</div>
-                              </div>
-                            ))}
+                            {searchResults.subjects.map((s: unknown) => {
+                              const subject = s as { id: string; name: string };
+                              return (
+                                <div
+                                  key={subject.id}
+                                  className="p-3 text-sm"
+                                  onMouseDown={() =>
+                                    router.push(
+                                      `/student/quizzes?subjectId=${subject.id}`
+                                    )
+                                  }
+                                >
+                                  <div className="font-medium">
+                                    {subject.name}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                     </>

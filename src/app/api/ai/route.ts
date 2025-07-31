@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       result: `Mock AI result for type: ${type}, prompt: ${prompt}`,
       message: 'AI generation successful (mock)',
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

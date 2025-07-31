@@ -11,6 +11,7 @@ import StudentShortAnswer from '@/components/shared/question-types/StudentShortA
 import StudentFillInBlank from '@/components/shared/question-types/StudentFillInBlank';
 import StudentEssay from '@/components/shared/question-types/StudentEssay';
 import { useRouter } from 'next/navigation';
+import { QuestionType } from '@/types/quiz-creation';
 
 interface QuestionOption {
   id: string;
@@ -54,6 +55,20 @@ export default function QuizContainer({
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
+  const handleSubmit = useCallback(async () => {
+    setSubmitting(true);
+    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+    try {
+      await onSubmit(answers, timeTaken);
+      // Optionally show a result modal here
+      router.push('/student/quizzes'); // or '/quizzes' or wherever
+    } catch {
+      // Optionally show error
+    } finally {
+      setSubmitting(false);
+    }
+  }, [answers, onSubmit, router, startTime]);
+
   // Timer logic
   useEffect(() => {
     if (!timeLeft) return;
@@ -65,7 +80,7 @@ export default function QuizContainer({
       setTimeLeft((t) => (t ? t - 1 : null));
     }, 1000);
     return () => clearInterval(interval);
-  }, [timeLeft]);
+  }, [timeLeft, handleSubmit]);
 
   // Autosave logic (debounced)
   useEffect(() => {
@@ -94,28 +109,20 @@ export default function QuizContainer({
     setCurrent((c) => Math.min(c + 1, questions.length - 1));
   const handlePrev = () => setCurrent((c) => Math.max(c - 1, 0));
 
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-    try {
-      await onSubmit(answers, timeTaken);
-      // Optionally show a result modal here
-      router.push('/student/quizzes'); // or '/quizzes' or wherever
-    } catch (err) {
-      // Optionally show error
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const renderQuestion = (q: Question, idx: number) => {
     // Map backend question to quiz-creation type for student components
     const mappedQ = {
       id: q.id,
-      type: q.type,
+      type: q.type as QuestionType,
       question: q.text,
-      options: q.options || [],
-    };
+      options: q.options?.map((opt) => opt.text) || [],
+      correctAnswer: '', // Not needed for student view
+      points: 1, // Default points
+      difficulty: 'Medium' as const, // Default difficulty
+      tags: [] as string[], // Default empty tags
+      category: '', // Default empty category
+      order: idx, // Use current index as order
+    } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Map backend enum types to frontend expected types
     const getQuestionType = (backendType: string) => {

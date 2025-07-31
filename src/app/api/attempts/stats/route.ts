@@ -207,21 +207,21 @@ export async function GET(req: NextRequest) {
       if (typeof attempt.score === 'number')
         studentScores[attempt.studentId].push(attempt.score);
     }
-    const studentAverages = Object.entries(studentScores).map(
-      ([id, scores]) => ({
-        id,
-        avg: scores.length
-          ? scores.reduce((a, b) => a + b, 0) / scores.length
-          : 0,
-      })
-    );
+    // const studentAverages = Object.entries(studentScores).map(
+    //   ([id, scores]) => ({
+    //     id,
+    //     avg: scores.length
+    //       ? scores.reduce((a, b) => a + b, 0) / scores.length
+    //       : 0,
+    //   })
+    // );
     // Find this student's average
-    const yourAvgObj = studentAverages.find((s) => s.id === studentId);
-    const yourAverage = yourAvgObj ? yourAvgObj.avg : 0;
+    // const yourAvgObj = studentAverages.find((s) => s.id === studentId);
+    // const yourAverage = yourAvgObj ? yourAvgObj.avg : 0;
     // Calculate class rank
-    const sorted = studentAverages.sort((a, b) => b.avg - a.avg);
-    const yourRank = sorted.findIndex((s) => s.id === studentId) + 1;
-    const totalStudents = studentAverages.length;
+    // const sorted = studentAverages.sort((a, b) => b.avg - a.avg);
+    // const yourRank = sorted.findIndex((s) => s.id === studentId) + 1;
+    // const totalStudents = studentAverages.length;
     // Calculate improvement rate (first vs last quiz)
     let improvementRate = 0;
     if (scores.length >= 2) {
@@ -360,7 +360,7 @@ export async function GET(req: NextRequest) {
       leaderboard,
       goals,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch stats' },
       { status: 500 }

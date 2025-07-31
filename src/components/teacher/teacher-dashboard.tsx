@@ -18,7 +18,6 @@ import {
   Users,
   BookOpen,
   BarChart3,
-  Clock,
   Target,
   Plus,
   TrendingUp,
@@ -27,15 +26,11 @@ import {
   FileText,
 } from 'lucide-react';
 import { Quiz } from '@/types/quiz';
+import { User } from '@/types/auth';
 import { useEffect, useState } from 'react';
 
 interface TeacherDashboardProps {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: 'student' | 'teacher';
-  };
+  user: User;
   stats: {
     totalStudents: number;
     activeQuizzes: number;
@@ -75,12 +70,11 @@ export function TeacherDashboard({
     activeQuizzesTrend?: number;
   } | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
-  const [metricsError, setMetricsError] = useState<string | null>(null);
+  // const [metricsError, setMetricsError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchMetrics() {
       setMetricsLoading(true);
-      setMetricsError(null);
       try {
         const res = await fetch(
           `/api/teacher/teacher-dashboard-metrics?userId=${user.id}`
@@ -88,8 +82,7 @@ export function TeacherDashboard({
         if (!res.ok) throw new Error('Failed to fetch metrics');
         const data = await res.json();
         setMetrics(data);
-      } catch (err) {
-        setMetricsError('Could not load student metrics.');
+      } catch {
         setMetrics({
           studentsInSubjects: 0,
           studentsInDepartment: 0,

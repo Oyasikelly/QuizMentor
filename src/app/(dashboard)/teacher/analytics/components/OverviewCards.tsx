@@ -87,7 +87,7 @@ const METRICS: MetricData[] = [
   },
 ];
 
-export default function OverviewCards({ subjectId }: { subjectId: string }) {
+export default function OverviewCards() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -1,15 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  ArrowLeft,
-  Edit,
-  Settings,
-  Eye,
-  Play,
-  CheckCircle,
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,46 +11,33 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Question, QuizSettings } from '@/types/quiz-creation';
 import QuizSettingsForm from '@/components/teacher/quiz-creator/quiz-settings-form';
 import QuestionEditor from '@/components/teacher/quiz-creator/question-editor';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { useAuth } from '@/hooks/useAuth';
+import { LoadingSpinner } from '@/components/shared/loading-spinner';
 
 type CreationStep = 'settings' | 'questions' | 'review';
 
-// Mock user data for dashboard layout
-const mockUser = {
-  id: 'teacher1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
-export default function FromScratchPage() {
+function FromScratchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isTemplate = searchParams.get('template') === 'true';
   const { user } = useAuth();
   const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([]);
-  const [subjectsLoading, setSubjectsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchSubjects() {
       if (!user?.id) return;
-      setSubjectsLoading(true);
       try {
         const res = await fetch(`/api/subjects?teacherId=${user.id}`);
         const data = await res.json();
         setSubjects(data.subjects || []);
-      } catch (err) {
+      } catch {
         setSubjects([]);
-      } finally {
-        setSubjectsLoading(false);
       }
     }
     fetchSubjects();
@@ -90,10 +70,6 @@ export default function FromScratchPage() {
 
   const handleSettingsChange = (settings: Partial<QuizSettings>) => {
     setQuizSettings((prev) => ({ ...prev, ...settings }));
-  };
-
-  const handleQuestionsChange = (updatedQuestions: Question[]) => {
-    setQuestions(updatedQuestions);
   };
 
   const handleSaveDraft = async () => {
@@ -140,8 +116,10 @@ export default function FromScratchPage() {
         return;
       }
       router.push('/teacher/manage-quizzes');
-    } catch (error: any) {
-      setError(error.message || 'Failed to publish quiz.');
+    } catch (error: unknown) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to publish quiz.'
+      );
     } finally {
       setIsPublishing(false);
     }
@@ -427,5 +405,13 @@ export default function FromScratchPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function FromScratchPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner size="lg" />}>
+      <FromScratchPageContent />
+    </Suspense>
   );
 }

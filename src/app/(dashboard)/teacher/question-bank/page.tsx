@@ -17,21 +17,11 @@ const stats = [
   { label: 'MCQ Ratio', value: '62%' },
 ];
 
-interface QuestionBankPageProps {
-  searchParams: {
-    search?: string;
-    filter?: string;
-    category?: string;
-    page?: string;
-  };
-}
-
-export default function QuestionBankPage({
-  searchParams,
-}: QuestionBankPageProps) {
+export default function QuestionBankPage() {
+  // const searchParams = useSearchParams(); // TODO: Use for filtering questions
   const [editorOpen, setEditorOpen] = useState(false);
 
-  const handleSaveQuestion = (data: any) => {
+  const handleSaveQuestion = (/* data: unknown */) => {
     // TODO: Save question to API
     setEditorOpen(false);
     alert('Question saved! (mock)');

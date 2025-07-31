@@ -78,7 +78,7 @@ export default function QuestionEditor({
       setSelectedQuestion(null);
       setEditingQuestion(null);
     }
-  }, [questions]);
+  }, [questions, selectedQuestion]);
 
   const updateQuestion = (updates: Partial<Question>) => {
     if (!editingQuestion) return;
@@ -133,18 +133,18 @@ export default function QuestionEditor({
     onQuestionsChange(updatedQuestions);
   };
 
-  const reorderQuestions = (fromIndex: number, toIndex: number) => {
-    const updatedQuestions = [...questions];
-    const [movedQuestion] = updatedQuestions.splice(fromIndex, 1);
-    updatedQuestions.splice(toIndex, 0, movedQuestion);
+  // const reorderQuestions = (fromIndex: number, toIndex: number) => {
+  //   const updatedQuestions = [...questions];
+  //   const [movedQuestion] = updatedQuestions.splice(fromIndex, 1);
+  //   updatedQuestions.splice(toIndex, 0, movedQuestion);
 
-    // Update order property
-    updatedQuestions.forEach((q, index) => {
-      q.order = index;
-    });
+  //   // Update order property
+  //   updatedQuestions.forEach((q, index) => {
+  //     q.order = index;
+  //   });
 
-    onQuestionsChange(updatedQuestions);
-  };
+  //   onQuestionsChange(updatedQuestions);
+  // };
 
   const validateQuestion = (question: Question): Record<string, string> => {
     const errors: Record<string, string> = {};

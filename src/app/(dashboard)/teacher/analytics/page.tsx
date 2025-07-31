@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, RefreshCw, Download } from 'lucide-react';
+import { RefreshCw, Download } from 'lucide-react';
 import OverviewDashboard from './components/OverviewDashboard';
 import PerformanceCharts from './components/PerformanceCharts';
 import QuizAnalytics from './components/QuizAnalytics';
@@ -19,6 +18,12 @@ import { FullPageSpinner } from '@/components/shared/loading-spinner';
 export default function TeacherAnalysisPage() {
   const { user, loading } = useAuth();
   const [subjectId, setSubjectId] = React.useState('');
+
+  // Handle server-side rendering
+  if (typeof window === 'undefined') {
+    return <div>Loading...</div>;
+  }
+
   if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
   if (!user) return null;
 
@@ -69,22 +74,22 @@ export default function TeacherAnalysisPage() {
         <ExportOptions />
 
         {/* Analytics Overview Cards */}
-        <OverviewDashboard subjectId={subjectId} />
+        <OverviewDashboard />
 
         {/* Performance Charts */}
-        <PerformanceCharts subjectId={subjectId} />
+        <PerformanceCharts />
 
         {/* Quiz Analytics Section */}
-        <QuizAnalytics subjectId={subjectId} />
+        <QuizAnalytics />
 
         {/* Student Analytics Section */}
-        <StudentAnalytics subjectId={subjectId} />
+        <StudentAnalytics />
 
         {/* Insights Panel */}
         <InsightsPanel />
 
         {/* Data Table Section */}
-        <DataTable subjectId={subjectId} />
+        <DataTable />
       </div>
     </DashboardLayout>
   );

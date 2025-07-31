@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
   const quizId = id;
@@ -27,7 +27,7 @@ export async function GET(
       return NextResponse.json({ error: 'Quiz not found.' }, { status: 404 });
     }
     return NextResponse.json({ quiz });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch quiz.' },
       { status: 500 }
@@ -37,7 +37,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
   const quizId = id;
@@ -50,7 +50,7 @@ export async function DELETE(
   try {
     await prisma.quiz.delete({ where: { id: quizId } });
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to delete quiz.' },
       { status: 500 }
@@ -60,7 +60,7 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
   const quizId = id;
@@ -82,7 +82,7 @@ export async function PATCH(
       archived: 'ARCHIVED',
     };
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (typeof isPublished === 'boolean') {
       updateData.isPublished = isPublished;
     }
@@ -95,8 +95,8 @@ export async function PATCH(
       data: updateData,
     });
     return NextResponse.json({ quiz: updatedQuiz });
-  } catch (error) {
-    console.error('PATCH quiz error:', error);
+  } catch {
+    console.error('PATCH quiz error: Unknown error');
     return NextResponse.json(
       { error: 'Failed to update quiz.' },
       { status: 500 }
@@ -106,7 +106,7 @@ export async function PATCH(
 
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
   const quizId = id;
@@ -152,7 +152,7 @@ export async function POST(
       include: { questions: true },
     });
     return NextResponse.json({ quiz: newQuiz });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to duplicate quiz.' },
       { status: 500 }

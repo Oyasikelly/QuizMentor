@@ -34,8 +34,10 @@ export async function GET(request: NextRequest) {
     }
 
     const orgId = teacher.user.organizationId;
-    const subjectIds = teacher.subjects.map((s: any) => s.id);
-    const teacherUnitId = teacher.user.unitId;
+    const subjectIds = teacher.subjects.map(
+      (s: unknown) => (s as { id: string }).id
+    );
+    // const teacherUnitId = teacher.user.unitId;
 
     // Get all quizzes for this teacher
     const quizzes = await prisma.quiz.findMany({

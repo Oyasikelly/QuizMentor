@@ -79,7 +79,9 @@ export default function QuestionReview({
                     Your answer:
                   </span>
                   <span className="ml-2 font-medium">
-                    {renderAnswer(q, response?.answer)}
+                    {response?.answer
+                      ? renderAnswer(q, response.answer)
+                      : 'No answer provided'}
                   </span>
                 </div>
                 {q.correctAnswer !== undefined && (
@@ -119,7 +121,11 @@ function renderAnswer(q: Question, answer: string | string[]) {
             .join(', ')
         : q.options?.find((o) => o.id === answer)?.text || answer;
     case 'true-false':
-      return answer === true ? 'True' : answer === false ? 'False' : '';
+      return answer === 'true'
+        ? 'True'
+        : answer === 'false'
+        ? 'False'
+        : String(answer || '');
     case 'short-answer':
     case 'essay':
       return answer || '';

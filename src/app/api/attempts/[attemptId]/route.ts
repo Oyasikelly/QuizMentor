@@ -31,7 +31,7 @@ export async function GET(
     // Optionally, fetch responses if stored separately
     // const responses = await prisma.quizResponse.findMany({ where: { attemptId } });
     return NextResponse.json({ attempt });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch attempt.' },
       { status: 500 }

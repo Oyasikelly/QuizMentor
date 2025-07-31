@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Sparkles,
-  Settings,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-} from 'lucide-react';
+import { Sparkles, Settings, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AIGenerationSettings, Question } from '@/types/quiz-creation';
@@ -161,13 +155,30 @@ export default function AIQuestionGenerator({
 
   const toggleQuestionType = (type: string) => {
     const currentTypes = generationSettings.questionTypes;
-    if (currentTypes.includes(type as any)) {
+    if (
+      currentTypes.includes(
+        type as
+          | 'multiple-choice'
+          | 'true-false'
+          | 'short-answer'
+          | 'essay'
+          | 'fill-blank'
+      )
+    ) {
       updateGenerationSettings({
         questionTypes: currentTypes.filter((t) => t !== type),
       });
     } else {
       updateGenerationSettings({
-        questionTypes: [...currentTypes, type as any],
+        questionTypes: [
+          ...currentTypes,
+          type as
+            | 'multiple-choice'
+            | 'true-false'
+            | 'short-answer'
+            | 'essay'
+            | 'fill-blank',
+        ],
       });
     }
   };
@@ -254,7 +265,12 @@ export default function AIQuestionGenerator({
                     key={option.value}
                     variant={
                       generationSettings.questionTypes.includes(
-                        option.value as any
+                        option.value as
+                          | 'multiple-choice'
+                          | 'true-false'
+                          | 'short-answer'
+                          | 'essay'
+                          | 'fill-blank'
                       )
                         ? 'default'
                         : 'outline'

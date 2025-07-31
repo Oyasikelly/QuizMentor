@@ -149,15 +149,23 @@ export async function POST(request: NextRequest) {
         organizationId,
         status: status || QuizStatus.DRAFT,
         questions: {
-          create: questions.map((q: any, idx: number) => ({
-            text: q.text,
-            type: typeMap[q.type] || q.type,
-            options: q.options ?? [],
-            correctAnswer: q.correctAnswer ?? '',
-            order: idx,
-            organizationId,
-            // Add other fields as needed
-          })),
+          create: questions.map((q: unknown, idx: number) => {
+            const question = q as {
+              text: string;
+              type: string;
+              options?: string[];
+              correctAnswer?: string;
+            };
+            return {
+              text: question.text,
+              type: typeMap[question.type] || question.type,
+              options: question.options ?? [],
+              correctAnswer: question.correctAnswer ?? '',
+              order: idx,
+              organizationId,
+              // Add other fields as needed
+            };
+          }),
         },
       },
       include: { questions: true },

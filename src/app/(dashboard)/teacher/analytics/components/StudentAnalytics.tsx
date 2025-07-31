@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function StudentAnalytics({ subjectId }: { subjectId: string }) {
+export default function StudentAnalytics() {
   return (
     <div className="my-8">
       {/* TODO: Student performance deep dive section */}

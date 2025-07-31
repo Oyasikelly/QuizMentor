@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       classYear,
       phoneNumber,
       department,
-      subjectsTaught,
+      // subjectsTaught,
       employeeId,
     } = body;
     const userId = body.userId;
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
           where: { userId },
           data: { academicLevel, classYear, phoneNumber },
         });
-      } catch (e) {
+      } catch {
         // If not found, create
         await prisma.student.create({
           data: {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
           where: { userId },
           data: { department, phoneNumber },
         });
-      } catch (e) {
+      } catch {
         // If not found, create
         await prisma.teacher.create({
           data: {

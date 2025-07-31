@@ -5,14 +5,14 @@ interface UseQuizQuestionsResult {
   questions: Question[];
   loading: boolean;
   error: string | null;
-  quiz: any;
+  quiz: Record<string, unknown> | null;
 }
 
 export function useQuizQuestions(
   quizId: string | null
 ): UseQuizQuestionsResult {
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

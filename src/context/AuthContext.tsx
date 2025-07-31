@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
@@ -62,25 +63,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Function to check and redirect user based on their profile completion
-  const checkAndRedirect = (user: User) => {
-    const redirectPath = getRedirectPath(user);
-    const currentPath = window.location.pathname;
+  const checkAndRedirect = useCallback(
+    (user: User) => {
+      const redirectPath = getRedirectPath(user);
+      const currentPath = window.location.pathname;
 
-    // Prevent redirect loop - only redirect if we're not already on the target path
-    if (currentPath !== redirectPath) {
-      console.log(
-        'Redirecting from',
-        currentPath,
-        'to',
-        redirectPath,
-        'for user:',
-        user.role,
-        'profileComplete:',
-        user.profileComplete
-      );
-      router.push(redirectPath);
-    }
-  };
+      // Prevent redirect loop - only redirect if we're not already on the target path
+      if (currentPath !== redirectPath) {
+        console.log(
+          'Redirecting from',
+          currentPath,
+          'to',
+          redirectPath,
+          'for user:',
+          user.role,
+          'profileComplete:',
+          user.profileComplete
+        );
+        router.push(redirectPath);
+      }
+    },
+    [router]
+  );
 
   // Simple function to get user from your database
   const getUserFromDatabase = async (userId: string): Promise<User | null> => {
@@ -162,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Cleanup subscription
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, checkAndRedirect]);
 
   const logout = async () => {
     try {

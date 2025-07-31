@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    // Upsert manual grade using unchecked create input
+    // Upsert manual grade
     const manualGrade = await prisma.manualGrade.upsert({
       where: { answerId },
       update: { pointsAwarded, feedback, gradedAt: new Date(), teacherId },
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         pointsAwarded,
         feedback: feedback || null,
         gradedAt: new Date(),
-      } as any, // Type assertion to bypass type checking temporarily
+      },
     });
     // Update QuizAnswer points and feedback
     await prisma.quizAnswer.update({
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       where: {
         question: { quizId },
         manualGrade: null,
-      } as any, // Type assertion to bypass type checking temporarily
+      },
       include: {
         question: true,
         attempt: true,

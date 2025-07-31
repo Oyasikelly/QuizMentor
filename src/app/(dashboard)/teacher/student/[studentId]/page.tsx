@@ -2,18 +2,18 @@ import React from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 
 // Mock user data for dashboard layout
-const mockUser = {
-  id: 'teacher1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
+// const mockUser = {
+//   id: 'teacher1',
+//   name: 'Dr. Sarah Wilson',
+//   email: 'sarah.wilson@example.com',
+//   role: 'teacher' as const,
+//   createdAt: new Date(),
+//   updatedAt: new Date(),
+// };
 
 // Mock student data
 const mockStudent = {
@@ -25,10 +25,10 @@ const mockStudent = {
 };
 
 interface StudentPageProps {
-  params: { studentId: string };
+  params: Promise<{ studentId: string }>;
 }
 
-export default function StudentPage({ params }: StudentPageProps) {
+export default function StudentPage({}: /* params */ StudentPageProps) {
   // TODO: Fetch student profile, analytics, quiz history, AI insights, etc.
   // TODO: Add error/loading states
   // In real implementation, fetch student by params.studentId

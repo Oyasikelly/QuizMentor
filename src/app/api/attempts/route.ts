@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { quizId, studentId, answers, status, timeSpent } = body;
+    const { quizId, studentId /*, answers, status */, timeSpent } = body;
     if (!quizId || !studentId) {
       return NextResponse.json(
         { error: 'Missing quizId or studentId.' },
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       });
     }
     return NextResponse.json({ attempt });
-  } catch (error) {
-    console.error('ATTEMPT SAVE ERROR:', error);
+  } catch {
+    console.error('ATTEMPT SAVE ERROR: Unknown error');
     return NextResponse.json(
       { error: 'Failed to save attempt.' },
       { status: 500 }
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       options: a.question.options,
     }));
     return NextResponse.json({ attempt, review });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch attempt.' },
       { status: 500 }
@@ -107,41 +107,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// GET /api/attempts/stats?studentId=...
-export async function GET_stats(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get('studentId');
-    if (!studentId) {
-      return NextResponse.json(
-        { error: 'Missing studentId.' },
-        { status: 400 }
-      );
-    }
-    // Fetch all completed attempts for this student
-    const attempts = await prisma.quizAttempt.findMany({
-      where: { studentId, completedAt: { not: null } },
-    });
-    const quizzesTaken = attempts.length;
-    const totalPoints = attempts.reduce((sum, a) => sum + (a.score || 0), 0);
-    const maxPoints = attempts.reduce(
-      (sum, a) => sum + (a.totalPoints || 0),
-      0
-    );
-    const averageScore =
-      maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 100) : 0;
-    // Dummy study streak (implement real logic if needed)
-    const studyStreak = 1;
-    return NextResponse.json({
-      quizzesTaken,
-      averageScore,
-      studyStreak,
-      totalPoints,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch stats.' },
-      { status: 500 }
-    );
-  }
-}
+// Stats functionality moved to /api/attempts/stats/route.ts

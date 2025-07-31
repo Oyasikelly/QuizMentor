@@ -26,7 +26,7 @@ import {
 interface SidebarProps {
   user: {
     id: string;
-    role: 'student' | 'teacher';
+    role: 'student' | 'teacher' | 'admin' | 'super_admin';
     organizationId?: string;
     institution?: string;
     department?: string;
@@ -115,6 +115,7 @@ const teacherNavItems = [
 
 export function Sidebar({ user, className }: SidebarProps) {
   const pathname = usePathname();
+  // Admin and super_admin should see teacher navigation
   const navItems = user.role === 'student' ? studentNavItems : teacherNavItems;
 
   return (
@@ -173,7 +174,9 @@ export function Sidebar({ user, className }: SidebarProps) {
           <div className="px-3 py-2">
             <h3 className="mb-2 px-4 text-sm font-medium">Quick Actions</h3>
             <div className="space-y-1">
-              {user.role === 'teacher' ? (
+              {user.role === 'teacher' ||
+              user.role === 'admin' ||
+              user.role === 'super_admin' ? (
                 <>
                   <Link href="/teacher/quick-create-quiz">
                     <Button variant="ghost" className="w-full justify-start">

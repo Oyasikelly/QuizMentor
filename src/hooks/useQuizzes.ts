@@ -42,13 +42,7 @@ export function useQuizzes(options: UseQuizzesOptions = {}): UseQuizzesReturn {
           }
         : undefined,
     }),
-    [
-      options.userId,
-      options.role,
-      options.filters?.subject,
-      options.filters?.difficulty,
-      options.filters?.isPublished,
-    ]
+    [options.userId, options.role, options.filters]
   );
 
   const fetchQuizzes = useCallback(async () => {

@@ -81,11 +81,11 @@ export async function POST(request: NextRequest) {
     const {
       userId,
       role,
-      academicLevel,
-      classYear,
-      phoneNumber,
-      department,
-      employeeId,
+      // academicLevel,
+      // classYear,
+      // phoneNumber,
+      // department,
+      // employeeId,
       unitId,
     } = body;
 
@@ -106,21 +106,22 @@ export async function POST(request: NextRequest) {
       });
 
       // Update or create student profile
-      const student = await prisma.student.upsert({
-        where: { userId },
-        update: {
-          academicLevel,
-          classYear,
-          phoneNumber,
-        },
-        create: {
-          userId,
-          studentId: userId, // Use userId as studentId for now
-          academicLevel,
-          classYear,
-          phoneNumber,
-        },
-      });
+      // const student = await prisma.student.upsert({
+      //   where: { userId },
+      //   update: {
+      //     academicLevel,
+      //     classYear,
+      //     phoneNumber,
+      //   },
+      //   create: {
+      //     userId,
+      //     studentId: userId, // Use userId as studentId for now
+      //     academicLevel,
+      //     classYear,
+      //     phoneNumber,
+      //   },
+      // });
+      // Comment out to avoid unused variable
 
       // Fetch updated user data
       const updatedUser = await prisma.user.findUnique({
@@ -146,18 +147,18 @@ export async function POST(request: NextRequest) {
       });
 
       // Update or create teacher profile
-      const teacher = await prisma.teacher.upsert({
-        where: { userId },
-        update: {
-          department,
-          employeeId,
-        },
-        create: {
-          userId,
-          department,
-          employeeId,
-        },
-      });
+      // const teacher = await prisma.teacher.upsert({
+      //   where: { userId },
+      //   update: {
+      //     department,
+      //     employeeId,
+      //   },
+      //   create: {
+      //     userId,
+      //     department,
+      //     employeeId,
+      //   },
+      // });
 
       // Fetch updated user data
       const updatedUser = await prisma.user.findUnique({

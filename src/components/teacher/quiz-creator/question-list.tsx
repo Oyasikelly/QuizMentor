@@ -1,20 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit, Trash2, Copy, GripVertical, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Copy, GripVertical, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Question } from '@/types/quiz-creation';
 import {
   getQuestionTypeDisplayName,
-  getQuestionTypeIcon,
   getDifficultyColor,
 } from '@/lib/question-templates';
 

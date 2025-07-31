@@ -14,7 +14,7 @@ interface TrendIndicatorProps {
 export default function TrendIndicator({ trend }: TrendIndicatorProps) {
   let icon = null;
   let colorClass = '';
-  let ariaLabel = trend.value;
+  const ariaLabel = trend.value;
 
   switch (trend.direction) {
     case 'up':

@@ -8,12 +8,41 @@ import { Button } from '@/components/ui/button';
 import { FullPageSpinner } from '@/components/shared/loading-spinner';
 import { QuizSettings } from '@/types/quiz-creation';
 
+interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  subjectId: string;
+  teacherId: string;
+  difficulty: string;
+  category: string;
+  tags: string[];
+  estimatedDuration: number;
+  timeLimit: number;
+  showTimer: boolean;
+  autoSubmit: boolean;
+  passingScore: number;
+  showScoreImmediately: boolean;
+  allowRetakes: boolean;
+  maxAttempts: number;
+  startDate?: string;
+  endDate?: string;
+  assignToClasses: string[];
+  assignToStudents: string[];
+  requirePassword: boolean;
+  password?: string;
+  questionsPerPage: number;
+  randomizeQuestions: boolean;
+  randomizeAnswers: boolean;
+  showQuestionNumbers: boolean;
+}
+
 export default function EditQuizPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
   const quizId = params.quizId as string;
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([]);
   const [settings, setSettings] = useState<Partial<QuizSettings>>({});
   const [loading, setLoading] = useState(true);
@@ -62,8 +91,8 @@ export default function EditQuizPage() {
           randomizeAnswers: quizData.randomizeAnswers,
           showQuestionNumbers: quizData.showQuestionNumbers,
         });
-      } catch (err: any) {
-        setError(err.message || 'Failed to load quiz');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load quiz');
       } finally {
         setLoading(false);
       }
@@ -86,8 +115,8 @@ export default function EditQuizPage() {
       });
       if (!res.ok) throw new Error('Failed to update quiz');
       router.push('/teacher/manage-quizzes');
-    } catch (err: any) {
-      setError(err.message || 'Failed to update quiz');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update quiz');
     } finally {
       setSaving(false);
     }

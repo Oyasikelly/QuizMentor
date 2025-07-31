@@ -24,98 +24,98 @@ import QuizPreview from '@/components/teacher/quiz-creator/quiz-preview';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 // Mock quiz data
-const mockQuizzes: Quiz[] = [
-  {
-    id: '1',
-    name: '',
-    title: 'Advanced Calculus',
-    description: 'Complex mathematical concepts and applications',
-    teacherId: 'teacher1',
-    subject: { id: 'math', name: 'Mathematics' },
-    subjectId: 'math',
-    timeLimit: 60,
-    totalPoints: 200,
-    isPublished: true,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-20'),
-    questions: [],
-    attempts: 45,
-    averageScore: 78,
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: '',
-    title: 'Modern Physics',
-    description: 'Quantum mechanics and relativity',
-    teacherId: 'teacher1',
-    subject: { id: 'science', name: 'Science' },
-    subjectId: 'science',
-    timeLimit: 45,
-    totalPoints: 150,
-    isPublished: true,
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-18'),
-    questions: [],
-    attempts: 32,
-    averageScore: 82,
-    status: 'active',
-  },
-  {
-    id: '3',
-    name: '',
-    title: "Shakespeare's Works",
-    description: 'Analysis of classic literature',
-    teacherId: 'teacher1',
-    subject: { id: 'literature', name: 'Literature' },
-    subjectId: 'literature',
-    timeLimit: 40,
-    totalPoints: 120,
-    isPublished: false,
-    createdAt: new Date('2024-01-05'),
-    updatedAt: new Date('2024-01-12'),
-    questions: [],
-    attempts: 0,
-    averageScore: 0,
-    status: 'draft',
-  },
-  {
-    id: '4',
-    name: '',
-    title: 'World History: Ancient Civilizations',
-    description: 'Explore the rise and fall of ancient empires',
-    teacherId: 'teacher1',
-    subject: { id: 'history', name: 'History' },
-    subjectId: 'history',
-    timeLimit: 50,
-    totalPoints: 180,
-    isPublished: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-15'),
-    questions: [],
-    attempts: 28,
-    averageScore: 75,
-    status: 'active',
-  },
-  {
-    id: '5',
-    name: '',
-    title: 'Basic Chemistry',
-    description: 'Fundamental chemical principles and reactions',
-    teacherId: 'teacher1',
-    subject: { id: 'science', name: 'Science' },
-    subjectId: 'science',
-    timeLimit: 35,
-    totalPoints: 100,
-    isPublished: false,
-    createdAt: new Date('2024-01-08'),
-    updatedAt: new Date('2024-01-14'),
-    questions: [],
-    attempts: 0,
-    averageScore: 0,
-    status: 'draft',
-  },
-];
+// const mockQuizzes: Quiz[] = [
+//   {
+//     id: '1',
+//     name: '',
+//     title: 'Advanced Calculus',
+//     description: 'Complex mathematical concepts and applications',
+//     teacherId: 'teacher1',
+//     subject: { id: 'math', name: 'Mathematics' },
+//     subjectId: 'math',
+//     timeLimit: 60,
+//     totalPoints: 200,
+//     isPublished: true,
+//     createdAt: new Date('2024-01-15'),
+//     updatedAt: new Date('2024-01-20'),
+//     questions: [],
+//     attempts: 45,
+//     averageScore: 78,
+//     status: 'active',
+//   },
+//   {
+//     id: '2',
+//     name: '',
+//     title: 'Modern Physics',
+//     description: 'Quantum mechanics and relativity',
+//     teacherId: 'teacher1',
+//     subject: { id: 'science', name: 'Science' },
+//     subjectId: 'science',
+//     timeLimit: 45,
+//     totalPoints: 150,
+//     isPublished: true,
+//     createdAt: new Date('2024-01-10'),
+//     updatedAt: new Date('2024-01-18'),
+//     questions: [],
+//     attempts: 32,
+//     averageScore: 82,
+//     status: 'active',
+//   },
+//   {
+//     id: '3',
+//     name: '',
+//     title: "Shakespeare's Works",
+//     description: 'Analysis of classic literature',
+//     teacherId: 'teacher1',
+//     subject: { id: 'literature', name: 'Literature' },
+//     subjectId: 'literature',
+//     timeLimit: 40,
+//     totalPoints: 120,
+//     isPublished: false,
+//     createdAt: new Date('2024-01-05'),
+//     updatedAt: new Date('2024-01-12'),
+//     questions: [],
+//     attempts: 0,
+//     averageScore: 0,
+//     status: 'draft',
+//   },
+//   {
+//     id: '4',
+//     name: '',
+//     title: 'World History: Ancient Civilizations',
+//     description: 'Explore the rise and fall of ancient empires',
+//     teacherId: 'teacher1',
+//     subject: { id: 'history', name: 'History' },
+//     subjectId: 'history',
+//     timeLimit: 50,
+//     totalPoints: 180,
+//     isPublished: true,
+//     createdAt: new Date('2024-01-01'),
+//     updatedAt: new Date('2024-01-15'),
+//     questions: [],
+//     attempts: 28,
+//     averageScore: 75,
+//     status: 'active',
+//   },
+//   {
+//     id: '5',
+//     name: '',
+//     title: 'Basic Chemistry',
+//     description: 'Fundamental chemical principles and reactions',
+//     teacherId: 'teacher1',
+//     subject: { id: 'science', name: 'Science' },
+//     subjectId: 'science',
+//     timeLimit: 35,
+//     totalPoints: 100,
+//     isPublished: false,
+//     createdAt: new Date('2024-01-08'),
+//     updatedAt: new Date('2024-01-14'),
+//     questions: [],
+//     attempts: 0,
+//     averageScore: 0,
+//     status: 'draft',
+//   },
+// ];
 
 type ViewMode = 'card' | 'table';
 type QuizStatus = 'all' | 'active' | 'draft' | 'archived';
@@ -188,9 +188,9 @@ export default function ManageQuizzesPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [attemptsData, setAttemptsData] = useState<AttemptsData | null>(null);
-  const [attemptsLoading, setAttemptsLoading] = useState(false);
+
   const [studentsData, setStudentsData] = useState<StudentsData | null>(null);
-  const [studentsLoading, setStudentsLoading] = useState(false);
+  // const [studentsLoading, setStudentsLoading] = useState(false);
 
   // Fetch quizzes from API
   useEffect(() => {
@@ -205,15 +205,17 @@ export default function ManageQuizzesPage() {
         console.log('Fetched quizzes:', data.quizzes);
         console.log(
           'Quiz statuses:',
-          data.quizzes?.map((q: any) => ({
-            id: q.id,
-            title: q.title,
-            status: q.status,
+          data.quizzes?.map((q: unknown) => ({
+            id: (q as { id: string }).id,
+            title: (q as { title: string }).title,
+            status: (q as { status: string }).status,
           }))
         );
         setQuizzes(data.quizzes || []);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch quizzes');
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch quizzes'
+        );
         setQuizzes([]);
       } finally {
         setIsLoading(false);
@@ -226,7 +228,7 @@ export default function ManageQuizzesPage() {
   useEffect(() => {
     async function fetchAttempts() {
       if (!user?.id) return;
-      setAttemptsLoading(true);
+
       try {
         const res = await fetch(
           `/api/teacher/quiz-attempts?teacherId=${user.id}`
@@ -234,11 +236,9 @@ export default function ManageQuizzesPage() {
         if (!res.ok) throw new Error('Failed to fetch attempts data');
         const data = await res.json();
         setAttemptsData(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch attempts:', err);
         setAttemptsData(null);
-      } finally {
-        setAttemptsLoading(false);
       }
     }
     fetchAttempts();
@@ -248,17 +248,17 @@ export default function ManageQuizzesPage() {
   useEffect(() => {
     async function fetchStudents() {
       if (!user?.id) return;
-      setStudentsLoading(true);
+      // setStudentsLoading(true);
       try {
         const res = await fetch(`/api/teacher/students?teacherId=${user.id}`);
         if (!res.ok) throw new Error('Failed to fetch students data');
         const data = await res.json();
         setStudentsData(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch students:', err);
         setStudentsData(null);
       } finally {
-        setStudentsLoading(false);
+        // setStudentsLoading(false);
       }
     }
     fetchStudents();
@@ -377,8 +377,10 @@ export default function ManageQuizzesPage() {
           if (data.quiz) {
             setQuizzes((prev) => [data.quiz, ...prev]);
           }
-        } catch (err: any) {
-          setError(err.message || 'Failed to duplicate quiz');
+        } catch (err: unknown) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to duplicate quiz'
+          );
         } finally {
           setIsLoading(false);
         }
@@ -402,8 +404,10 @@ export default function ManageQuizzesPage() {
                 : q
             )
           );
-        } catch (err: any) {
-          setError(err.message || 'Failed to archive quiz');
+        } catch (err: unknown) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to archive quiz'
+          );
         } finally {
           setIsLoading(false);
         }
@@ -418,8 +422,10 @@ export default function ManageQuizzesPage() {
           });
           if (!res.ok) throw new Error('Failed to delete quiz');
           setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
-        } catch (err: any) {
-          setError(err.message || 'Failed to delete quiz');
+        } catch (err: unknown) {
+          setError(
+            err instanceof Error ? err.message : 'Failed to delete quiz'
+          );
         } finally {
           setIsLoading(false);
         }
@@ -481,7 +487,7 @@ export default function ManageQuizzesPage() {
               <CardContent>
                 {attemptsData.attemptsPerQuiz.length > 0 ? (
                   <div className="space-y-3">
-                    {attemptsData.attemptsPerQuiz.map((quiz: any) => (
+                    {attemptsData.attemptsPerQuiz.map((quiz) => (
                       <div
                         key={quiz.quizId}
                         className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
@@ -491,7 +497,7 @@ export default function ManageQuizzesPage() {
                             {quiz.quizTitle}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {quiz.subjectName}
+                            {/* quiz.subjectName */}
                           </div>
                         </div>
                         <div className="text-right">
@@ -526,7 +532,7 @@ export default function ManageQuizzesPage() {
               <CardContent>
                 {attemptsData.attemptsBySubject.length > 0 ? (
                   <div className="space-y-3">
-                    {attemptsData.attemptsBySubject.map((subject: any) => (
+                    {attemptsData.attemptsBySubject.map((subject) => (
                       <div
                         key={subject.subjectName}
                         className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
@@ -536,8 +542,8 @@ export default function ManageQuizzesPage() {
                             {subject.subjectName}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {subject.quizzes} quiz
-                            {subject.quizzes !== 1 ? 'zes' : ''}
+                            {/* {subject.quizzes} quiz */}
+                            {/* {subject.quizzes !== 1 ? 'zes' : ''} */}
                           </div>
                         </div>
                         <div className="text-right">
@@ -619,25 +625,25 @@ export default function ManageQuizzesPage() {
               <CardContent>
                 {studentsData.studentsInDepartment.length > 0 ? (
                   <div className="space-y-3">
-                    {studentsData.studentsInDepartment.map((student: any) => (
+                    {studentsData.studentsInDepartment.map((student) => (
                       <div
-                        key={student.id}
+                        key={student.studentId}
                         className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="font-medium text-sm">
-                            {student.name}
+                            {student.studentName}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {student.email}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {student.studentId} • {student.classYear}
+                            {student.studentId} • {student.department}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-muted-foreground">
-                            {student.academicLevel}
+                            {/* student.academicLevel */}
                           </div>
                         </div>
                       </div>
@@ -664,25 +670,25 @@ export default function ManageQuizzesPage() {
               <CardContent>
                 {studentsData.studentsInSubjects.length > 0 ? (
                   <div className="space-y-3">
-                    {studentsData.studentsInSubjects.map((student: any) => (
+                    {studentsData.studentsInSubjects.map((student) => (
                       <div
-                        key={student.id}
+                        key={student.studentId}
                         className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
                       >
                         <div className="flex-1">
                           <div className="font-medium text-sm">
-                            {student.name}
+                            {student.studentName}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {student.email}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {student.studentId} • {student.classYear}
+                            {student.studentId} • {student.subjects.join(', ')}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-muted-foreground">
-                            {student.academicLevel}
+                            {/* student.academicLevel */}
                           </div>
                         </div>
                       </div>
@@ -776,10 +782,16 @@ export default function ManageQuizzesPage() {
             </CardHeader>
             <CardContent className="px-4 sm:px-6 pb-4">
               <ul className="text-sm text-green-900 dark:text-green-200 space-y-1">
-                <li>Quiz "Advanced Calculus" was updated 2 days ago.</li>
-                <li>"Modern Physics" received 5 new attempts this week.</li>
-                <li>"Shakespeare's Works" saved as draft.</li>
-                <li>"World History" published and assigned to Class A.</li>
+                <li>
+                  Quiz &quot;Advanced Calculus&quot; was updated 2 days ago.
+                </li>
+                <li>
+                  &quot;Modern Physics&quot; received 5 new attempts this week.
+                </li>
+                <li>&quot;Shakespeare&apos;s Works&quot; saved as draft.</li>
+                <li>
+                  &quot;World History&quot; published and assigned to Class A.
+                </li>
               </ul>
             </CardContent>
           </Card>
@@ -964,7 +976,12 @@ export default function ManageQuizzesPage() {
                     }}
                     questions={(previewQuiz.questions || []).map((q) => ({
                       id: q.id,
-                      type: q.type as any,
+                      type: q.type as
+                        | 'multiple-choice'
+                        | 'true-false'
+                        | 'short-answer'
+                        | 'essay'
+                        | 'fill-blank',
                       question: q.text,
                       options: q.options,
                       correctAnswer: q.correctAnswer,
@@ -999,7 +1016,7 @@ export default function ManageQuizzesPage() {
                           )
                         );
                         setPreviewQuizId(null); // Optionally close the modal
-                      } catch (err) {
+                      } catch {
                         alert('Failed to publish quiz');
                       } finally {
                         setIsLoading(false);

@@ -254,8 +254,8 @@ export default function FromTemplatePage() {
       });
       if (!res.ok) throw new Error('Failed to create quiz');
       router.push('/teacher/manage-quizzes');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create quiz');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create quiz');
     } finally {
       setIsLoading(false);
     }

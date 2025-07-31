@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
     }
 
     const orgId = teacher.user.organizationId;
-    const subjectIds = teacher.subjects.map((s: any) => s.id);
+    const subjectIds = teacher.subjects.map(
+      (s: unknown) => (s as { id: string }).id
+    );
     const teacherUnitId = teacher.user.unitId;
 
     // Get students in teacher's department (same unit)
@@ -81,22 +83,37 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate overlap
-    const departmentStudentIds = new Set(studentsInDepartment.map((s) => s.id));
+    // const departmentStudentIds = new Set(studentsInDepartment.map((s) => s.id));
     const subjectStudentIds = new Set(studentsInSubjects.map((s) => s.id));
     const overlap = studentsInDepartment.filter((s) =>
       subjectStudentIds.has(s.id)
     );
 
     // Format student data
-    const formatStudent = (user: any) => ({
-      id: user.id,
-      name: user.name || 'Unknown',
-      email: user.email,
-      studentId: user.student?.studentId || 'N/A',
-      classYear: user.student?.classYear || 'N/A',
-      academicLevel: user.student?.academicLevel || 'N/A',
-      phoneNumber: user.student?.phoneNumber || user.phoneNumber || 'N/A',
-    });
+    const formatStudent = (user: unknown) => {
+      const studentUser = user as {
+        id: string;
+        name?: string;
+        email: string;
+        student?: {
+          studentId?: string;
+          classYear?: string;
+          academicLevel?: string;
+          phoneNumber?: string;
+        };
+        phoneNumber?: string;
+      };
+      return {
+        id: studentUser.id,
+        name: studentUser.name || 'Unknown',
+        email: studentUser.email,
+        studentId: studentUser.student?.studentId || 'N/A',
+        classYear: studentUser.student?.classYear || 'N/A',
+        academicLevel: studentUser.student?.academicLevel || 'N/A',
+        phoneNumber:
+          studentUser.student?.phoneNumber || studentUser.phoneNumber || 'N/A',
+      };
+    };
 
     return NextResponse.json({
       studentsInDepartment: studentsInDepartment.map(formatStudent),

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card,
@@ -26,6 +26,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { Quiz } from '@/types/quiz';
+import { User } from '@/types/auth';
 import { startOfWeek, startOfMonth } from 'date-fns';
 
 interface Attempt {
@@ -46,12 +47,7 @@ interface Achievement {
 }
 
 interface StudentDashboardProps {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: 'student' | 'teacher';
-  };
+  user: User;
   isLoading?: boolean;
 }
 
@@ -60,70 +56,70 @@ export function StudentDashboard({
   isLoading = false,
 }: StudentDashboardProps) {
   const router = useRouter();
-  const [recentAttempts, setRecentAttempts] = useState<Attempt[]>([]);
-  const [realStats, setRealStats] = useState({
+  const [recentAttempts] = useState<Attempt[]>([]);
+  const [realStats] = useState({
     completedQuizzesCount: 0,
     averageScore: 0,
     studyStreak: 0,
     totalPoints: 0,
   });
-  const [availableQuizzes, setAvailableQuizzes] = useState<Quiz[]>([]);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [availableQuizzes] = useState<Quiz[]>([]);
+  const [achievements] = useState<Achievement[]>([]);
 
   if (user.role !== 'student') return null;
 
-  useEffect(() => {
-    async function fetchRecentAttempts() {
-      // Fetch the latest 5 attempts for this student
-      const res = await fetch(`/api/attempts?studentId=${user.id}&limit=5`);
-      if (res.ok) {
-        const data = await res.json();
-        setRecentAttempts(data.attempts || []);
-      }
-    }
-    async function fetchStats() {
-      const res = await fetch(`/api/attempts/stats?studentId=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setRealStats({
-          ...data,
-          completedQuizzesCount: data.completedQuizzes.length,
-        });
-        setRecentAttempts(data.completedQuizzes || []);
-      }
-    }
-    async function fetchAvailableQuizzes() {
-      const res = await fetch(`/api/quizzes?studentId=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAvailableQuizzes(data.quizzes || []);
-      }
-    }
-    async function fetchAchievements() {
-      const res = await fetch(`/api/achievements?studentId=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAchievements(data.achievements || []);
-      }
-    }
-    fetchRecentAttempts();
-    fetchStats();
-    fetchAvailableQuizzes();
-    fetchAchievements();
-    // Refetch when window regains focus
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        fetchRecentAttempts();
-        fetchStats();
-        fetchAvailableQuizzes();
-        fetchAchievements();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [user.id]);
+  // useEffect(() => {
+  //   async function fetchRecentAttempts() {
+  //     // Fetch the latest 5 attempts for this student
+  //     const res = await fetch(`/api/attempts?studentId=${user.id}&limit=5`);
+  //     if (res.ok) {
+  //       const data = await res.json();
+  //       setRecentAttempts(data.attempts || []);
+  //     }
+  //   }
+  //   async function fetchStats() {
+  //     const res = await fetch(`/api/attempts/stats?studentId=${user.id}`);
+  //     if (res.ok) {
+  //       const data = await res.json();
+  //       setRealStats({
+  //         ...data,
+  //         completedQuizzesCount: data.completedQuizzes.length,
+  //       });
+  //       setRecentAttempts(data.completedQuizzes || []);
+  //     }
+  //   }
+  //   async function fetchAvailableQuizzes() {
+  //     const res = await fetch(`/api/quizzes?studentId=${user.id}`);
+  //     if (res.ok) {
+  //       const data = await res.json();
+  //       setAvailableQuizzes(data.quizzes || []);
+  //     }
+  //   }
+  //   async function fetchAchievements() {
+  //     const res = await fetch(`/api/achievements?studentId=${user.id}`);
+  //     if (res.ok) {
+  //       const data = await res.json();
+  //       setAchievements(data.achievements || []);
+  //     }
+  //   }
+  //   fetchRecentAttempts();
+  //   fetchStats();
+  //   fetchAvailableQuizzes();
+  //   fetchAchievements();
+  //   // Refetch when window regains focus
+  //   const handleVisibility = () => {
+  //     if (document.visibilityState === 'visible') {
+  //       fetchRecentAttempts();
+  //       fetchStats();
+  //       fetchAvailableQuizzes();
+  //       fetchAchievements();
+  //     }
+  //   };
+  //   document.addEventListener('visibilitychange', handleVisibility);
+  //   return () => {
+  //     document.removeEventListener('visibilitychange', handleVisibility);
+  //   };
+  // }, [user.id]);
 
   if (isLoading) {
     return (
@@ -137,7 +133,9 @@ export function StudentDashboard({
   // Calculate progress overview stats
   // Use completedQuizzes from realStats if available, else fallback to recentAttempts
   const completedQuizzes =
-    (realStats as any).completedQuizzes || recentAttempts || [];
+    (realStats as Record<string, unknown>).completedQuizzes ||
+    recentAttempts ||
+    [];
 
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
@@ -152,11 +150,17 @@ export function StudentDashboard({
   );
 
   // Completed attempts this week/month (by completedAt)
-  const attemptsThisWeek = completedQuizzes.filter(
-    (a: any) => a.completedAt && new Date(a.completedAt) >= weekStart
+  const attemptsThisWeek = (completedQuizzes as unknown[]).filter(
+    (a: unknown) =>
+      (a as Record<string, unknown>).completedAt &&
+      new Date((a as Record<string, unknown>).completedAt as string) >=
+        weekStart
   );
-  const attemptsThisMonth = completedQuizzes.filter(
-    (a: any) => a.completedAt && new Date(a.completedAt) >= monthStart
+  const attemptsThisMonth = (completedQuizzes as unknown[]).filter(
+    (a: unknown) =>
+      (a as Record<string, unknown>).completedAt &&
+      new Date((a as Record<string, unknown>).completedAt as string) >=
+        monthStart
   );
 
   // Progress values

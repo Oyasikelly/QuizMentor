@@ -54,15 +54,21 @@ export async function GET(request: NextRequest) {
   );
   const achievementsData = await achievementsRes.json();
   const achievements = (achievementsData.achievements || []).filter(
-    (a: any) =>
-      a.title?.toLowerCase().includes(q) ||
-      a.description?.toLowerCase().includes(q)
+    (a: unknown) => {
+      const achievement = a as { title?: string; description?: string };
+      return (
+        achievement.title?.toLowerCase().includes(q) ||
+        achievement.description?.toLowerCase().includes(q)
+      );
+    }
   );
-  const badges = (achievementsData.badges || []).filter(
-    (b: any) =>
-      b.name?.toLowerCase().includes(q) ||
-      b.description?.toLowerCase().includes(q)
-  );
+  const badges = (achievementsData.badges || []).filter((b: unknown) => {
+    const badge = b as { name?: string; description?: string };
+    return (
+      badge.name?.toLowerCase().includes(q) ||
+      badge.description?.toLowerCase().includes(q)
+    );
+  });
 
   // Search subjects (in org, name match)
   const subjects = await prisma.subject.findMany({

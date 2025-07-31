@@ -61,7 +61,7 @@ export default function QuizClient({ id }: { id: string }) {
 
   // On submit, call the backend to grade and save answers
   const handleSubmit = async (
-    answers: Array<{ questionId: string; answer: string }>,
+    answers: Array<{ questionId: string; answer: string | string[] }>,
     timeTaken: number
   ) => {
     if (!attemptId) {
@@ -100,10 +100,25 @@ export default function QuizClient({ id }: { id: string }) {
     );
   }
 
+  // Transform questions to match QuizContainer's expected format
+  const transformedQuestions =
+    quizData.questions?.map((q) => ({
+      ...q,
+      options:
+        q.options?.map((option, index) => ({
+          id: `option-${q.id}-${index}`,
+          text: option,
+          isCorrect:
+            q.correctAnswer === option ||
+            (Array.isArray(q.correctAnswer) &&
+              q.correctAnswer.includes(option)),
+        })) || [],
+    })) || [];
+
   return (
     <QuizContainer
       quizTitle={quizData.title}
-      questions={quizData.questions}
+      questions={transformedQuestions}
       timeLimit={quizData.timeLimit}
       onSubmit={handleSubmit}
     />

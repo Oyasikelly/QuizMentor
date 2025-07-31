@@ -5,15 +5,14 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Save, Eye, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { QuizCreationWizardState, WizardStep } from '@/types/quiz-creation';
+import { WizardStep } from '@/types/quiz-creation';
 
 interface QuizCreationWizardProps {
   currentStep: number;
   onStepChange: (step: number) => void;
-  quiz: any;
-  questions: any[];
+  quiz: Record<string, unknown>;
+  questions: Record<string, unknown>[];
   onSaveDraft: () => Promise<void>;
   onPublish: () => Promise<void>;
 }
@@ -292,26 +291,32 @@ export default function QuizCreationWizard({
                     Quiz Info
                   </h4>
                   <div className="space-y-2 text-sm">
-                    {quiz.title && (
-                      <div>
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Title:
-                        </span>
-                        <span className="ml-2 text-gray-900 dark:text-white">
-                          {quiz.title}
-                        </span>
-                      </div>
-                    )}
-                    {quiz.subject && (
-                      <div>
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Subject:
-                        </span>
-                        <span className="ml-2 text-gray-900 dark:text-white">
-                          {quiz.subject}
-                        </span>
-                      </div>
-                    )}
+                    {(() => {
+                      const title = quiz.title;
+                      return title && typeof title === 'string' ? (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-300">
+                            Title:
+                          </span>
+                          <span className="ml-2 text-gray-900 dark:text-white">
+                            {title}
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const subject = quiz.subject;
+                      return subject && typeof subject === 'string' ? (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-300">
+                            Subject:
+                          </span>
+                          <span className="ml-2 text-gray-900 dark:text-white">
+                            {subject}
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
                     {questions.length > 0 && (
                       <div>
                         <span className="text-gray-600 dark:text-gray-300">

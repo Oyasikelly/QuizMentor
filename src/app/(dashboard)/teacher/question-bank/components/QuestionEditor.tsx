@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm /*, Controller */ } from 'react-hook-form';
 import {
   Dialog,
   DialogContent,
@@ -10,13 +10,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
+
+interface QuestionFormData {
+  text: string;
+  type: string;
+  difficulty: string;
+  tags: string[];
+  options: string[];
+  answer: string;
+}
 
 interface QuestionEditorProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  initialData?: any;
+  onSave: (data: QuestionFormData) => void;
+  initialData?: Partial<QuestionFormData>;
 }
 
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
@@ -28,16 +37,17 @@ export function QuestionEditor({
   onSave,
   initialData,
 }: QuestionEditorProps) {
-  const { register, handleSubmit, watch, control, reset } = useForm({
-    defaultValues: initialData || {
-      text: '',
-      type: 'MCQ',
-      difficulty: 'Medium',
-      tags: [],
-      options: ['', '', '', ''],
-      answer: '',
-    },
-  });
+  const { register, handleSubmit, watch /*, control */, reset } =
+    useForm<QuestionFormData>({
+      defaultValues: initialData || {
+        text: '',
+        type: 'MCQ',
+        difficulty: 'Medium',
+        tags: [],
+        options: ['', '', '', ''],
+        answer: '',
+      },
+    });
 
   const type = watch('type');
 

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -37,6 +39,12 @@ const mockStudents = [
 
 export default function StudentsPage() {
   const { user, loading } = useAuth();
+
+  // Handle server-side rendering
+  if (typeof window === 'undefined') {
+    return <div>Loading...</div>;
+  }
+
   if (loading) return <FullPageSpinner text="Loading your dashboard..." />;
   if (!user) return null;
   // TODO: Add search/filter state and logic

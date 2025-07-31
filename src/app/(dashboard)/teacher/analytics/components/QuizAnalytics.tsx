@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function QuizAnalytics({ subjectId }: { subjectId: string }) {
+export default function QuizAnalytics() {
   return (
     <div className="my-8">
       {/* TODO: Detailed quiz analysis section */}

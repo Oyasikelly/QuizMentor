@@ -90,6 +90,7 @@ interface ContainerAnimationProps {
   speed?: 'slow' | 'medium' | 'fast';
   interactive?: boolean;
   autoPlay?: boolean;
+  loop?: boolean;
   showLabels?: boolean;
   size?: 'small' | 'medium' | 'large';
 }
@@ -117,13 +118,17 @@ const outputVariants = {
   exit: { x: 40, opacity: 0 },
 };
 
-const processingPulse = {
+const getProcessingPulse = (loop: boolean) => ({
   animate: {
     scale: [1, 1.08, 1],
     rotate: [0, 8, -8, 0],
-    transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' },
+    transition: {
+      duration: 1.5,
+      repeat: loop ? Infinity : 0,
+      ease: 'easeInOut',
+    },
   },
-};
+});
 
 const ORBIT_ICON_COUNT = orbitIcons.length;
 const ORBIT_RADIUS = {
@@ -136,6 +141,7 @@ const ContainerAnimation: React.FC<ContainerAnimationProps> = ({
   speed = 'medium',
   interactive = true,
   autoPlay = true,
+  loop = true,
   showLabels = true,
   size = 'medium',
 }) => {
@@ -164,7 +170,7 @@ const ContainerAnimation: React.FC<ContainerAnimationProps> = ({
       clearInterval(outputInterval);
       clearInterval(waveInterval);
     };
-  }, [autoPlay, speed]);
+  }, [autoPlay, speed, loop]);
 
   // Icon selection for this cycle
   const InputIcon = inputIcons[inputCycle % inputIcons.length];
@@ -277,7 +283,7 @@ const ContainerAnimation: React.FC<ContainerAnimationProps> = ({
             animate={{ scale: [1, 1.1, 1], rotate: [0, 8, -8, 0] }}
             transition={{
               duration: 2,
-              repeat: Infinity,
+              repeat: loop ? Infinity : 0,
               ease: [0.42, 0, 0.58, 1],
               type: 'tween',
             }}
@@ -290,12 +296,12 @@ const ContainerAnimation: React.FC<ContainerAnimationProps> = ({
             className={`flex items-center justify-center ${iconColors.processing}`}
             style={{ zIndex: 2 }}
             animate={{
-              scale: processingPulse.animate.scale,
-              rotate: processingPulse.animate.rotate,
+              scale: getProcessingPulse(loop).animate.scale,
+              rotate: getProcessingPulse(loop).animate.rotate,
             }}
             transition={{
-              duration: processingPulse.animate.transition.duration,
-              repeat: processingPulse.animate.transition.repeat,
+              duration: getProcessingPulse(loop).animate.transition.duration,
+              repeat: getProcessingPulse(loop).animate.transition.repeat,
               ease: [0.42, 0, 0.58, 1],
             }}
           >

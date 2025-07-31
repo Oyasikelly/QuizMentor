@@ -15,8 +15,8 @@ import { WizardStep } from '@/types/quiz-creation';
 interface QuizCreationProgressProps {
   steps: WizardStep[];
   currentStep: number;
-  quiz?: any;
-  questions?: any[];
+  quiz?: Record<string, unknown>;
+  questions?: Record<string, unknown>[];
   isDirty?: boolean;
   lastSaved?: Date;
 }
@@ -31,7 +31,8 @@ export default function QuizCreationProgress({
 }: QuizCreationProgressProps) {
   const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;
   const totalPoints = questions.reduce(
-    (sum: number, q: any) => sum + (q.points || 0),
+    (sum: number, q: Record<string, unknown>) =>
+      sum + ((q.points as number) || 0),
     0
   );
   const estimatedTime = Math.ceil(questions.length * 2);
@@ -141,7 +142,7 @@ export default function QuizCreationProgress({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <div
                 key={step.id}
                 className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
@@ -203,38 +204,50 @@ export default function QuizCreationProgress({
                     Basic Info
                   </h4>
                   <div className="space-y-2 text-sm">
-                    {quiz.title && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Title:
-                        </span>
-                        <span className="font-medium">{quiz.title}</span>
-                      </div>
-                    )}
-                    {quiz.subject && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Subject:
-                        </span>
-                        <span className="font-medium">{quiz.subject}</span>
-                      </div>
-                    )}
-                    {quiz.category && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Category:
-                        </span>
-                        <span className="font-medium">{quiz.category}</span>
-                      </div>
-                    )}
-                    {quiz.difficulty && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-300">
-                          Difficulty:
-                        </span>
-                        <span className="font-medium">{quiz.difficulty}</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const title = quiz.title;
+                      return title && typeof title === 'string' ? (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">
+                            Title:
+                          </span>
+                          <span className="font-medium">{title}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const subject = quiz.subject;
+                      return subject && typeof subject === 'string' ? (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">
+                            Subject:
+                          </span>
+                          <span className="font-medium">{subject}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const category = quiz.category;
+                      return category && typeof category === 'string' ? (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">
+                            Category:
+                          </span>
+                          <span className="font-medium">{category}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const difficulty = quiz.difficulty;
+                      return difficulty && typeof difficulty === 'string' ? (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-300">
+                            Difficulty:
+                          </span>
+                          <span className="font-medium">{difficulty}</span>
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
               )}

@@ -155,10 +155,13 @@ export const createQuestionFromTemplate = (
     id,
     type,
     question: '',
-    ...template.template,
+    correctAnswer: '', // Provide default value
+    points: 5, // Provide default value
+    difficulty: 'Medium' as const, // Provide default value
     order,
     category,
     tags: [],
+    ...template.template,
   };
 };
 
@@ -227,7 +230,8 @@ export const validateQuestionByType = (question: Question): string[] => {
     case 'true-false':
       if (
         !question.correctAnswer ||
-        !['true', 'false'].includes(question.correctAnswer)
+        (Array.isArray(question.correctAnswer) && question.correctAnswer.length === 0) ||
+        (!Array.isArray(question.correctAnswer) && !['true', 'false'].includes(question.correctAnswer))
       ) {
         errors.push(
           'True/False questions must have "true" or "false" as correct answer'

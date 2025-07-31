@@ -9,7 +9,7 @@ export async function GET(req: Request) {
     const where = organizationId ? { organizationId } : {};
     const units = await prisma.organizationalUnit.findMany({ where });
     return NextResponse.json({ units });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch units.' },
       { status: 500 }

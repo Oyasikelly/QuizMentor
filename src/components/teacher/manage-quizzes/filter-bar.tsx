@@ -66,7 +66,7 @@ export function FilterBar({
       if (searchInput !== searchQuery) onSearchChange(searchInput);
     }, 300);
     return () => clearTimeout(handler);
-  }, [searchInput]);
+  }, [searchInput, searchQuery, onSearchChange]);
 
   // Multi-select subject logic
   const handleSubjectChange = (value: string) => {

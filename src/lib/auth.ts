@@ -8,7 +8,7 @@ import {
 
 // Simple function to sync user from Supabase to your database
 async function syncUserToDatabase(
-  supabaseUser: any,
+  supabaseUser: any, // eslint-disable-line @typescript-eslint/no-explicit-any
   role: string,
   name: string,
   organizationId: string
@@ -143,7 +143,7 @@ export async function registerUser(
     console.log('Supabase registration successful for user:', data.user.id);
 
     // 2. Sync user to your database
-    const userProfile = await syncUserToDatabase(
+    await syncUserToDatabase(
       data.user,
       credentials.role,
       credentials.name,

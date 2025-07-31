@@ -4,9 +4,9 @@ import { GoToSubjectButton } from './GoToSubjectButton';
 import React from 'react';
 
 export default async function StudentQuizRedirectPage(props: {
-  params: { id: string | string[] };
+  params: Promise<{ id: string | string[] }>;
 }) {
-  // Await params in Next.js 14+ server components
+  // Await params in Next.js 15 server components
   const params = await props.params;
   const quizId =
     typeof params.id === 'string'

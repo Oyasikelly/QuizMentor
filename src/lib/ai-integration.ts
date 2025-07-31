@@ -2,14 +2,14 @@ import { Question, AIGenerationSettings } from '@/types/quiz-creation';
 
 // Mock OpenAI client - replace with actual OpenAI SDK
 class MockOpenAIClient {
-  async chat(completions: any) {
+  async chat(completions: Record<string, unknown>) {
     // Simulate AI response
     return {
       choices: [
         {
           message: {
             content: JSON.stringify(
-              this.generateMockQuestions(completions.messages[1].content)
+              this.generateMockQuestions(((completions.messages as Array<{ content: string }>)[1]?.content as string) || '')
             ),
           },
         },
@@ -17,7 +17,8 @@ class MockOpenAIClient {
     };
   }
 
-  private generateMockQuestions(content: string): Question[] {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private generateMockQuestions(_content: string): Question[] {
     const questions: Question[] = [];
     const topics = [
       'JavaScript',

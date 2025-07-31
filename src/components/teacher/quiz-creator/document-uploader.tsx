@@ -68,7 +68,7 @@ export default function DocumentUploader({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFiles = (files: FileList) => {
     const newFiles: File[] = [];
@@ -444,10 +444,17 @@ export default function DocumentUploader({
 
             <Button
               onClick={handleGenerateQuestions}
-              disabled={uploadState.processingStatus === 'processing'}
+              disabled={
+                (uploadState.processingStatus as string) === 'processing'
+              }
               className="w-full"
             >
-              {uploadState.processingStatus === 'processing' ? (
+              {(uploadState.processingStatus as
+                | 'idle'
+                | 'uploading'
+                | 'processing'
+                | 'complete'
+                | 'error') === 'processing' ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Generating Questions...

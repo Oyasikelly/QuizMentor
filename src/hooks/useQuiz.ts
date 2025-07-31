@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Quiz, Question, QuizAttempt } from '@/types/quiz';
+import { Quiz, Question } from '@/types/quiz';
 
 export function useQuiz(quizId?: string) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,7 @@ export function useQuiz(quizId?: string) {
       if (!res.ok) throw new Error('Quiz not found');
       const data = await res.json();
       setQuiz(data.quiz);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch quiz');
       setQuiz(null);
     } finally {
@@ -24,26 +24,26 @@ export function useQuiz(quizId?: string) {
     }
   }, []);
 
-  const submitQuiz = async (answers: any) => {
+  const submitQuiz = async (answers: Record<string, unknown>) => {
     setLoading(true);
     setError(null);
     try {
       // TODO: Implement quiz submission logic
       console.log('Submitting quiz:', answers);
-    } catch (err) {
+    } catch {
       setError('Failed to submit quiz');
     } finally {
       setLoading(false);
     }
   };
 
-  const createQuiz = async (quizData: any) => {
+  const createQuiz = async (quizData: Record<string, unknown>) => {
     setLoading(true);
     setError(null);
     try {
       // TODO: Implement quiz creation logic
       console.log('Creating quiz:', quizData);
-    } catch (err) {
+    } catch {
       setError('Failed to create quiz');
     } finally {
       setLoading(false);

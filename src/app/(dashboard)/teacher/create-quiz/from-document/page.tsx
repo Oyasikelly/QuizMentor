@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  FileText,
-  Settings,
-  Eye,
-  Play,
-  CheckCircle,
-} from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,8 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+
 import {
   DocumentUploadState,
   AIGenerationSettings,
@@ -34,16 +26,6 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { useAuth } from '@/hooks/useAuth';
 
 type CreationStep = 'upload' | 'settings' | 'questions' | 'review';
-
-// Mock user data for dashboard layout
-const mockUser = {
-  id: 'teacher1',
-  name: 'Dr. Sarah Wilson',
-  email: 'sarah.wilson@example.com',
-  role: 'teacher' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
 
 export default function FromDocumentPage() {
   const router = useRouter();
@@ -67,20 +49,16 @@ export default function FromDocumentPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([]);
-  const [subjectsLoading, setSubjectsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchSubjects() {
       if (!user?.id) return;
-      setSubjectsLoading(true);
       try {
         const res = await fetch(`/api/subjects?teacherId=${user.id}`);
         const data = await res.json();
         setSubjects(data.subjects || []);
-      } catch (err) {
+      } catch {
         setSubjects([]);
-      } finally {
-        setSubjectsLoading(false);
       }
     }
     fetchSubjects();
