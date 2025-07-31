@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         );
       }
       const orgId = teacher.user.organizationId;
-      const subjectIds = teacher.subjects.map((s) => s.id);
+      const subjectIds = teacher.subjects.map((s: { id: string }) => s.id);
       // Find quizzes created by this teacher or for subjects they teach, strictly in their org
       quizzes = await prisma.quiz.findMany({
         where: {

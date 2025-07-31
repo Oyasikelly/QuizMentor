@@ -148,12 +148,12 @@ export async function POST(
               order: number;
             }) => ({
               text: q.text,
-              type: q.type,
+              type: q.type as 'MULTIPLE_CHOICE' | 'SHORT_ANSWER' | 'TRUE_FALSE',
               options: q.options,
               correctAnswer: q.correctAnswer,
               points: q.points,
               order: q.order,
-              organizationId: quiz.organizationId,
+              organization: { connect: { id: quiz.organizationId } },
             })
           ),
         },
