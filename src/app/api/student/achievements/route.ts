@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '../../../../lib/db';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -21,13 +21,15 @@ export async function GET(request: NextRequest) {
   const dates = Array.from(
     new Set(
       attempts
-        .map((a) => a.completedAt?.toISOString().slice(0, 10))
+        .map((a: { completedAt: Date | null }) =>
+          a.completedAt?.toISOString().slice(0, 10)
+        )
         .filter((d): d is string => !!d)
     )
   ).sort();
   let streak = 0,
     maxStreak = 0,
-    prevDate = null;
+    prevDate: string | null = null;
   for (const date of dates) {
     if (
       prevDate &&
@@ -193,27 +195,34 @@ export async function GET(request: NextRequest) {
   }
 
   // Performance metrics (score over time)
-  const performanceMetrics = attempts.map((a) => ({
-    date: a.completedAt?.toISOString().slice(0, 10),
-    score: a.score,
-    subject: a.quiz?.subject?.name || 'General',
-  }));
+  const performanceMetrics = attempts.map(
+    (a: {
+      completedAt: Date | null;
+      score: number | null;
+      quiz?: { subject?: { name: string } };
+    }) => ({
+      date: a.completedAt?.toISOString().slice(0, 10),
+      score: a.score,
+      subject: a.quiz?.subject?.name || 'General',
+    })
+  );
 
   // Streaks
   const streaks = [
     {
       currentStreak: streak,
       longestStreak: maxStreak,
-      weeklyActivity: dates.map((date) => ({
+      weeklyActivity: dates.map((date: string) => ({
         date,
         quizzesCompleted: attempts.filter(
-          (a) => a.completedAt?.toISOString().slice(0, 10) === date
+          (a: { completedAt: Date | null }) =>
+            a.completedAt?.toISOString().slice(0, 10) === date
         ).length,
         studyTime: 0, // Add if you track time
       })),
       monthlyGoal: {
         target: 20,
-        achieved: attempts.filter((a) => {
+        achieved: attempts.filter((a: { completedAt: Date | null }) => {
           const d = a.completedAt;
           if (!d) return false;
           const now = new Date();
@@ -223,7 +232,7 @@ export async function GET(request: NextRequest) {
           );
         }).length,
         percentage: Math.round(
-          (attempts.filter((a) => {
+          (attempts.filter((a: { completedAt: Date | null }) => {
             const d = a.completedAt;
             if (!d) return false;
             const now = new Date();
