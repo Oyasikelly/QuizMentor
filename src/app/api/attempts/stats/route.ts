@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
     const totalPoints = scores.reduce((a: number, b: number) => a + b, 0);
 
     // Calculate study streak (max consecutive days with attempts)
-    const dates: string[] = Array.from(
+    const dates = Array.from(
       new Set(
         attempts.map((a: { createdAt: Date }) =>
           (a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt))
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
             .slice(0, 10)
         )
       )
-    ).sort();
+    ).sort() as string[];
     let streak = 0,
       maxStreak = 0,
       prevDate: string | null = null;
