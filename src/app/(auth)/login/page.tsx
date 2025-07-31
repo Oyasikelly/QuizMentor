@@ -164,11 +164,11 @@ function LoginPageContent() {
           <div className="w-full max-w-md space-y-8">
             {/* Welcome Section */}
             <div className="text-center space-y-4">
-              <div className="flex justify-center">
+              {/* <div className="flex justify-center">
                 <div className="bg-primary rounded-full p-3">
                   <Shield className="w-8 h-8 text-primary-foreground" />
                 </div>
-              </div>
+              </div> */}
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">
                   Welcome back

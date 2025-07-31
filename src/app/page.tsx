@@ -642,11 +642,11 @@ export default function Home() {
                   Sign In
                 </Button>
               </Link>
-              <Link href="/register">
+              {/* <Link href="/register">
                 <Button variant="outline" size="sm">
                   Sign up
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </div>
         </header>
