@@ -71,9 +71,9 @@ export async function GET(req: NextRequest) {
     const totalAttempts = attempts.length;
     const scores = attempts.map((a: { score?: number | null }) => a.score ?? 0);
     const averageScore = scores.length
-      ? scores.reduce((a, b) => a + b, 0) / scores.length
+      ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length
       : 0;
-    const totalPoints = scores.reduce((a, b) => a + b, 0);
+    const totalPoints = scores.reduce((a: number, b: number) => a + b, 0);
 
     // Calculate study streak (max consecutive days with attempts)
     const dates = Array.from(
@@ -152,10 +152,13 @@ export async function GET(req: NextRequest) {
 
       for (const quizId in attemptsByQuiz) {
         const sortedAttempts = attemptsByQuiz[quizId].sort(
-          (a, b) => (b.score ?? 0) - (a.score ?? 0)
+          (a: { score?: number | null }, b: { score?: number | null }) =>
+            (b.score ?? 0) - (a.score ?? 0)
         );
         const rank =
-          sortedAttempts.findIndex((a) => a.studentId === studentId) + 1;
+          sortedAttempts.findIndex(
+            (a: { studentId: string }) => a.studentId === studentId
+          ) + 1;
         const totalTakers = sortedAttempts.length;
 
         if (completedQuizzesMap.has(quizId)) {
@@ -172,16 +175,21 @@ export async function GET(req: NextRequest) {
     // Get unique subjects studied
     const subjectsMap = new Map();
     attempts
-      .filter((attempt) => attempt.quiz.subject)
-      .forEach((attempt) => {
-        const subject = attempt.quiz.subject!;
-        if (!subjectsMap.has(subject.id)) {
-          subjectsMap.set(subject.id, {
-            id: subject.id,
-            name: subject.name,
-          });
+      .filter(
+        (attempt: { quiz: { subject: { id: string; name: string } } }) =>
+          attempt.quiz.subject
+      )
+      .forEach(
+        (attempt: { quiz: { subject: { id: string; name: string } } }) => {
+          const subject = attempt.quiz.subject!;
+          if (!subjectsMap.has(subject.id)) {
+            subjectsMap.set(subject.id, {
+              id: subject.id,
+              name: subject.name,
+            });
+          }
         }
-      });
+      );
     const subjectsStudied = Array.from(subjectsMap.values());
 
     // Get the student's user and organization
@@ -197,7 +205,7 @@ export async function GET(req: NextRequest) {
       where: { organizationId: user.organizationId, role: 'STUDENT' },
       select: { id: true },
     });
-    const studentIds = students.map((s) => s.id);
+    const studentIds = students.map((s: { id: string }) => s.id);
     // Get all quiz attempts for these students
     const allAttempts = await prisma.quizAttempt.findMany({
       where: {
@@ -240,11 +248,17 @@ export async function GET(req: NextRequest) {
 
     // --- Progress Chart Data ---
     // Performance over time (date, score, subject)
-    const performanceOverTime = attempts.map((a) => ({
-      date: a.completedAt?.toISOString().slice(0, 10),
-      score: a.score,
-      subject: a.quiz?.subject?.name || 'General',
-    }));
+    const performanceOverTime = attempts.map(
+      (a: {
+        completedAt: Date | null;
+        score: number | null;
+        quiz: { subject: { name: string } };
+      }) => ({
+        date: a.completedAt?.toISOString().slice(0, 10),
+        score: a.score,
+        subject: a.quiz?.subject?.name || 'General',
+      })
+    );
 
     // Subject breakdown (average score and quiz count per subject)
     const subjectStats: Record<string, { name: string; scores: number[] }> = {};
@@ -256,13 +270,18 @@ export async function GET(req: NextRequest) {
       if (typeof a.score === 'number')
         subjectStats[subject.id].scores.push(a.score);
     }
-    const subjectBreakdown = Object.values(subjectStats).map((s) => ({
-      subject: s.name,
-      averageScore: s.scores.length
-        ? Math.round(s.scores.reduce((a, b) => a + b, 0) / s.scores.length)
-        : 0,
-      quizCount: s.scores.length,
-    }));
+    const subjectBreakdown = Object.values(subjectStats).map(
+      (s: { name: string; scores: number[] }) => ({
+        subject: s.name,
+        averageScore: s.scores.length
+          ? Math.round(
+              s.scores.reduce((a: number, b: number) => a + b, 0) /
+                s.scores.length
+            )
+          : 0,
+        quizCount: s.scores.length,
+      })
+    );
 
     // Difficulty progress (dummy, as difficulty is not tracked)
     // You can replace this with real logic if you track question/quiz difficulty
@@ -282,10 +301,11 @@ export async function GET(req: NextRequest) {
     const streakData = {
       currentStreak: streak,
       longestStreak: maxStreak,
-      weeklyActivity: dates.slice(-7).map((date) => ({
+      weeklyActivity: dates.slice(-7).map((date: string) => ({
         date,
         quizzesCompleted: attempts.filter(
-          (a) => a.completedAt?.toISOString().slice(0, 10) === date
+          (a: { completedAt: Date | null }) =>
+            a.completedAt?.toISOString().slice(0, 10) === date
         ).length,
         studyTime: 0, // Add if you track time
       })),
@@ -301,7 +321,7 @@ export async function GET(req: NextRequest) {
           );
         }).length,
         percentage: Math.round(
-          (attempts.filter((a) => {
+          (attempts.filter((a: { completedAt: Date | null }) => {
             const d = a.completedAt;
             if (!d) return false;
             const now = new Date();
@@ -326,12 +346,14 @@ export async function GET(req: NextRequest) {
     for (const s of studentUsers) {
       studentNamesMap[s.id] = s.name || 'Student';
     }
-    const leaderboard = sortedStudents.map((s, idx) => ({
-      rank: idx + 1,
-      studentName: studentNamesMap[s.id] || 'Student',
-      points: s.totalScore,
-      isCurrentUser: s.id === studentId,
-    }));
+    const leaderboard = sortedStudents.map(
+      (s: { id: string; totalScore: number }, idx: number) => ({
+        rank: idx + 1,
+        studentName: studentNamesMap[s.id] || 'Student',
+        points: s.totalScore,
+        isCurrentUser: s.id === studentId,
+      })
+    );
 
     // --- Goals Data ---
     const goals = [
