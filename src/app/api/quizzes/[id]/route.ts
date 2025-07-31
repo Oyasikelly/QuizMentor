@@ -138,15 +138,24 @@ export async function POST(
         totalPoints: quiz.totalPoints,
         timeLimit: quiz.timeLimit,
         questions: {
-          create: quiz.questions.map((q) => ({
-            text: q.text,
-            type: q.type,
-            options: q.options,
-            correctAnswer: q.correctAnswer,
-            points: q.points,
-            order: q.order,
-            organizationId: quiz.organizationId,
-          })),
+          create: quiz.questions.map(
+            (q: {
+              text: string;
+              type: string;
+              options: string[];
+              correctAnswer: string;
+              points: number;
+              order: number;
+            }) => ({
+              text: q.text,
+              type: q.type,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              points: q.points,
+              order: q.order,
+              organizationId: quiz.organizationId,
+            })
+          ),
         },
       },
       include: { questions: true },
