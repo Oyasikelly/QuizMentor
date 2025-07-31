@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
   for (const date of dates) {
     if (
       prevDate !== null &&
-      new Date(date).getTime() - new Date(prevDate).getTime() === 86400000
+      new Date(date).getTime() - new Date(prevDate as string).getTime() ===
+        86400000
     ) {
       streak++;
     } else {
