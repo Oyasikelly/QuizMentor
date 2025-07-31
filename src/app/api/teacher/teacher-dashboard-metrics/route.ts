@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (!teacher) {
       return NextResponse.json({ error: 'Teacher not found' }, { status: 404 });
     }
-    const subjectIds = teacher.subjects.map((s) => s.id);
+    const subjectIds = teacher.subjects.map((s: { id: string }) => s.id);
     const unitId = teacher.user.unitId;
 
     // 1. Students in teacher's subjects (via quiz attempts as proxy)
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         select: { studentId: true },
       });
       studentsInSubjects = Array.from(
-        new Set(attempts.map((a) => a.studentId))
+        new Set(attempts.map((a: { studentId: string }) => a.studentId))
       );
     }
 
@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
         where: { unitId, role: 'STUDENT' },
         select: { id: true },
       });
-      studentsInDepartment = users.map((u) => u.id);
+      studentsInDepartment = users.map((u: { id: string }) => u.id);
     }
 
     // 3. Overlap
-    const overlap = studentsInSubjects.filter((id) =>
+    const overlap = studentsInSubjects.filter((id: string) =>
       studentsInDepartment.includes(id)
     );
 

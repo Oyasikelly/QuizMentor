@@ -84,8 +84,10 @@ export async function GET(request: NextRequest) {
 
     // Calculate overlap
     // const departmentStudentIds = new Set(studentsInDepartment.map((s) => s.id));
-    const subjectStudentIds = new Set(studentsInSubjects.map((s) => s.id));
-    const overlap = studentsInDepartment.filter((s) =>
+    const subjectStudentIds = new Set(
+      studentsInSubjects.map((s: { id: string }) => s.id)
+    );
+    const overlap = studentsInDepartment.filter((s: { id: string }) =>
       subjectStudentIds.has(s.id)
     );
 
